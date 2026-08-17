@@ -1,0 +1,33 @@
+# Example output from customer-profile-extractor.py
+# This is what MemOS will receive for one customer.
+
+customer_hash: a3f1c7e9b2d40581
+company: Lagos Auto Parts Ltd
+country: Nigeria
+language_mix: [en]
+relationship_days: 412
+total_turns: 287
+total_sessions: 34
+known_orders:
+  - summary: "2024-Q4, brake pads mixed SKU, 20ft container"
+    approx_value_usd: 18000
+  - summary: "2025-Q1, repeat brake pads + new filters trial"
+    approx_value_usd: 24500
+preferred_payment: "30% TT deposit, 70% against B/L copy"
+known_objections:
+  - "always pushes back on shipping cost, prefers FOB quotes"
+  - "compares to Chinese competitor 'Wenzhou Auto' on every quote"
+unfinished_commitments:
+  - "promised 2025-Q2 new SKU catalog with filter range (overdue 23 days)"
+communication_style: |
+  Direct, transactional. Skips small talk. Always asks total landed cost
+  upfront. Responds within 4 hours during Lagos business hours, silent on
+  weekends.
+red_flags: []
+last_interaction_summary: |
+  2025-05-09: Asked for shipping schedule on PO-2025-0421. We confirmed ETD
+  May 18 from Ningbo. Customer requested B/L draft 3 days before sailing.
+  No outstanding asks from our side beyond the overdue Q2 catalog.
+relationship_score: 8
+_auto_onboard: true
+_gate_reason: ok

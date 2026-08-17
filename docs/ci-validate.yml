@@ -1,0 +1,34 @@
+# GitHub Actions CI workflow for this repository.
+#
+# NOTE: This file is the canonical copy of the repository's CI workflow.
+# GitHub Apps without the `workflows` permission cannot push files under
+# `.github/workflows/`, so this copy lives at `docs/` and should be restored
+# to `.github/workflows/validate.yml` (unchanged) once Actions permissions are
+# available. It runs `npm test` (scripts/validate-template.sh) on every push
+# and pull request to `main`.
+
+name: Validate Template
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate template
+        run: npm test

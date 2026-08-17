@@ -1,0 +1,11 @@
+# Optional dependencies for backup extraction (extract-ios-backup.py /
+# extract-android-backup.py).
+#
+# Not pulled in by the core requirements.txt because the main pipeline
+# (parser → extractor → miner → upload) does NOT need these. Install only
+# when you need to extract from a device backup.
+#
+#   pip install -r scripts/requirements-extract.txt
+
+iphone_backup_decrypt>=0.7.0
+wa-crypt-tools>=2.0.0

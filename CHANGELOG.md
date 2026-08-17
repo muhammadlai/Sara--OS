@@ -1,0 +1,1903 @@
+# Changelog
+
+All notable changes to the B2B SDR Agent Template are documented here.
+
+Changes sourced from upstream (openclaw/openclaw) are labeled with the originating commit SHA.
+
+---
+
+## [Unreleased]
+
+## 2026-06-12 — OpenClaw v2026.6.6 upstream sync
+
+Upstream: [openclaw/openclaw v2026.6.6](https://github.com/openclaw/openclaw/releases/tag/v2026.6.6) — 77 commits; security hardening, multi-channel delivery stability, Claude Fable 5, and UI performance.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Security hardening across 10+ vectors**: Transcript boundaries, sandbox binds, MCP stdio, Codex HTTP, elevated sender verification, and deleted-agent ACP bypass paths all tightened. Exec approvals now fail closed on timeout — a pending approval prompt no longer silently permits task execution.
+- **Claude Fable 5 adaptive thinking**: Native support for Fable 5 with adaptive thinking enabled — high-value prospect conversations can leverage deep reasoning before composing replies, while simpler sequences route to faster models.
+- **Telegram account-scoped topic routing**: Topics now route to the correct agents; streamed text survives tool calls without truncation; unauthorized DM text no longer leaks into cache or prompt context.
+- **iMessage always-on inbound restart**: Channel recovers automatically without manual intervention; durable echo markers prevent duplicate sends; idle approval discovery improves reliability for long threads.
+- **WhatsApp successor-controller fix**: Captured replies stay bound to the correct successor controller after service restart — critical for sequences where prospects reply hours later.
+- **Feishu rate-limit retries / Mattermost thread preservation / LINE webhook normalization**: Cross-platform delivery reliability improvements.
+- **UI startup latency reduction**: Model metadata cached at startup, catalog wait removed from critical path, slash commands lazy-loaded — visibly snappier TUI for teams managing many simultaneous sequences.
+- **Slow-reply diagnostics + first-event tracing**: Actionable signal when replies take longer than expected, replacing silent timeouts.
+- **OpenRouter OAuth onboarding**: Standard OAuth flow replaces manual token copy-paste for OpenRouter users.
+- **Gemma 4 reasoning replay preservation**: Reasoning content correctly preserved across session compaction.
+- **Local llama.cpp plugin isolation**: Moved into dedicated provider plugin; local models skip guardian review for faster iteration.
+
+---
+
+## 2026-06-09 — OpenClaw v2026.6.5 upstream sync
+
+Upstream: [openclaw/openclaw v2026.6.5](https://github.com/openclaw/openclaw/releases/tag/v2026.6.5) — first stable release under YYYY.M.PATCH monthly patch numbering.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Built-in Parallel web search provider**: Native web search with API key auto-discovery, cache-safe session management, and endpoint normalization — lead research workflows (firmographic lookups, LinkedIn signal enrichment, buying trigger detection) now run concurrently across multiple prospects.
+- **Anthropic extended-thinking session recovery**: Long AI reasoning sessions recover automatically after prompt-cache expiry via deferred stream start events — 10+ step deal analysis and stakeholder mapping workflows complete reliably without silent mid-chain failures.
+- **MCP tool result coercion**: Non-text/image blocks (JSON objects, numeric scores, status objects) are automatically coerced to Anthropic-accepted formats — CRM lookups, lead scoring, and multi-step tool chains no longer corrupt session history.
+- **QQBot reasoning stripping**: Raw `<thinking>` scaffolding is stripped before channel delivery — professional outreach output reaches recipients cleanly.
+- **Auth profiles migrated to SQLite**: Credentials survive agent restarts; npm plugin installs preserve trusted pins; prerelease fallback integrity checks prevent stale auth after upgrades.
+- **Bounded WhatsApp startup waits**: Prevents infinite hang when WhatsApp API is slow at boot, unblocking all other channel initialization.
+- **Matrix voice preflighting + thread-aware replies**: Voice notes validated before delivery; replies attach to source thread rather than creating orphaned top-level messages.
+- **Google Vertex ADC improvements**: Static catalog rows restored, runtime model resolution fixed, cooldown recovery more reliable.
+- **macOS Node stability**: Prevents silent self-reconnection away from healthy Gateway sessions.
+- **Cron legacy JSON migration + safer env placeholders**: Scheduled job config survives upgrades; `${VAR}` literals blocked from reaching APIs when env vars are unset.
+
+---
+
+## 2026-06-07 — Template v3.8.0 CI + deploy doctor
+
+### Added
+
+- **GitHub Actions CI**: Added `.github/workflows/validate.yml` so pushes and pull requests to `main` run `npm test` automatically.
+- **Post-deploy doctor**: Added `deploy/doctor.sh` for SSH-based health checks covering Node/npm, OpenClaw CLI, config permissions, workspace files, local skills, Gateway service, Gateway health endpoint, and Chroma memory.
+- **Remote path configuration**: Added `REMOTE_HOME`, `REMOTE_OPENCLAW_HOME`, `REMOTE_CONFIG_HOME`, and `REMOTE_WORKSPACE_DIR` so non-root or custom-path deployments no longer require editing deploy scripts.
+- **IP isolation path alignment**: `deploy/ip-isolate.sh` now uses the configured OpenClaw and systemd user paths when injecting Gateway proxy settings.
+
+### Fixed
+
+- **Generated workspace path**: `deploy/generate-config.sh` now writes `agents.defaults.workspace` from the configured remote workspace path instead of hardcoding `/root/.openclaw/workspace`.
+- **Validation coverage**: `npm test` now verifies the CI workflow, doctor script, current `b2b_trade` skill count, and non-root workspace path generation.
+
+## 2026-06-07 — Template v3.7.0 validation + memory deployment alignment
+
+### Added
+
+- **Template validation entrypoint**: Added `package.json` with `npm test` / `npm run validate` so contributors and release operators can verify the template without a live server.
+- **`scripts/validate-template.sh`**: Smoke-tests required template files, shell syntax, product KB JSON, proforma invoice generation, local Chroma memory store/search, and generated `openclaw.json`.
+
+### Fixed
+
+- **ChromaDB deployment flag now has release behavior**: `CHROMADB_ENABLED=true` now installs the `chromadb` dependency, keeps it enabled by default for L3/L4 memory, and reports memory status in deploy output.
+- **Docs consistency**: Updated the template metadata and README copy to reflect 14 pipeline checks, the current 4-layer anti-amnesia memory model, and the actual 41-skill `b2b_trade` profile.
+
+## 2026-06-03 — OpenClaw v2026.6.1 upstream sync
+
+Upstream: [openclaw/openclaw v2026.6.1](https://github.com/openclaw/openclaw/releases/tag/v2026.6.1) — first stable release of the v2026.6.x cycle.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **8-platform channel delivery hardening**: WhatsApp, Telegram, iMessage, Slack, Discord, Microsoft Teams, Google Chat, and iOS Realtime Talk all receive delivery hardening for steadier message delivery — fewer dropped messages in overnight outreach sequences.
+- **Multi-agent workboard orchestration primitives**: Coordination layer for distributing work across agents — assign prospect-research to a dedicated agent, route qualified leads to a closer, run parallel enrichment and personalization; workboard supports persistent shared state, proposal review queues, and async handoff between agents.
+- **Skill Workshop Control UI**: Proposal lists, today-actions queue, revision handoff, searchable file previews, review states, locale coverage tracking, and reusable session routing — reduces daily management overhead for teams running 10+ active markets.
+- **Agent and runtime recovery**: Interrupted tool calls, stale session bindings, compaction handoffs, and media delivery retries all handled cleanly — long SDR conversations no longer lose early qualification context on compaction.
+- **6-category hot-path performance**: Skills metadata, session metadata reads, gateway runtime state, plugin metadata fingerprints, memory watcher deduplication, and store write coalescing — CRM lookups and enrichment calls faster within a session.
+- **iMessage SQLite state tracking**: Monitor state, inbound queues, and plugin install ledgers now SQLite-backed — iMessage context survives restarts and redeployments.
+- **MiniMax M3 + GitHub Copilot agent runtime**: MiniMax M3 available for high-volume lead scoring and intent classification; GitHub Copilot agent runtime plugin for code-generating SDR tooling agents.
+
+### Migration notes
+
+- No breaking changes. All new features are additive.
+- iMessage SQLite database created automatically on first restart after upgrade.
+- Workboard and Skill Workshop Control UI require no configuration to activate.
+
+## 2026-05-30 — OpenClaw v2026.5.28 upstream sync
+
+Upstream: [openclaw/openclaw v2026.5.28](https://github.com/openclaw/openclaw/releases/tag/v2026.5.28) — 35 contributors.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Multi-channel session hardening — 7 platforms**: Session identities verified on outbound plugin hooks for WhatsApp, Telegram, Slack, Discord, iMessage, Matrix, and Microsoft Teams; WhatsApp profile-scoped auth directory resolution fixed — critical for multi-account deployments; Telegram callback page validation and Discord component ID enforcement tightened.
+- **Claude Opus 4.8 support**: Anthropic's latest flagship model now selectable for complex prospect research and multi-step reasoning tasks; pair with Sonnet 4.6 for cost-optimal routing in SDR workflows.
+- **Provider expansion**: Fal Krea image generation, NVIDIA model catalog, MiniMax streaming music, encrypted PDF extraction (ClawPDF), and GitHub Copilot agent runtime added.
+- **Agent/Codex runtime — 16+ stability fixes**: Subagent workspace separation enforced (no cross-workspace bleed); prompt-local hook context; timeout-based session lock release (hung sessions no longer block overnight queues); stale restart continuations prevented; tool argument repair for quoted/escaped inputs (fewer malformed CRM API calls).
+- **Performance**: Install-record caching, config parsing optimization, session-level tool catalog reuse — second and subsequent CRM/enrichment calls faster within a session.
+- **Auth hardening**: Workspace dotenv credentials no longer auto-loaded (prevents accidental leaks); OAuth/token lifetimes bounded (compliance-friendly); malformed numeric inputs rejected.
+- **iOS Pro refresh**: Pro Command, Chat, Agents, and Settings integrated; hosted push relay defaults enabled (no manual relay config for mobile sales reps); realtime Talk playback added.
+- **ClawHub & SDK**: Plugin display names and skill verification; GitHub Copilot and Tokenjuice externalized as install-on-demand (smaller base install); Workboard agent coordination tools for work handoff.
+
+### Migration notes
+
+- **WhatsApp deployments**: Review auth directory paths — profile-scoped resolution may change credential lookup location.
+- **OAuth-dependent workflows**: Token expiry is now bounded; set explicit rotation logic before upgrading.
+- **Workspace dotenv**: Any `.env` in workspace directories will no longer auto-load into agent context — audit before upgrade.
+
+## 2026-05-28 — OpenClaw v2026.5.27 upstream sync
+
+Upstream: [openclaw/openclaw v2026.5.27](https://github.com/openclaw/openclaw/releases/tag/v2026.5.27) — 253 commits to main.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Security hardening — 4 layers**: Group prompt text kept out of the system prompt (blocks prompt injection via group messages); repeated-dot hostnames normalized (closes URL confusion attack class); side-effecting command wrappers blocked; unsafe Node.js runtime env overrides blocked — enterprise-grade hardening for multi-tenant SDR deployments.
+- **Gateway performance — 6 cache layers**: Session reads, plugin metadata fingerprints, auth env snapshots, auto-enabled plugin configs, tool-search catalogs, and stable metadata now cached on hot path — agents respond faster under load; lead enrichment and CRM lookup tools complete sooner.
+- **Codex app-server reliability**: Model resolution fixed; workspace memory routing scoped correctly (no cross-workspace bleed in multi-team deploys); client persistence improved (less task loss during outreach sequences); relay generation preserved across restarts.
+- **OpenAI-compatible embeddings**: Any OpenAI-embeddings-API-compatible provider (Ollama, Cohere, Jina, etc.) can now be registered — enables semantic lead deduplication, intent classification, and RAG-powered company research in SDR workflows.
+- **DeepInfra catalog browsing**: Full DeepInfra model catalog now browsable from model picker — access to Llama, Mistral, Qwen without manual model IDs.
+- **Pixverse video generation**: Native video generation provider — enables personalized video intro attachments for WhatsApp/LinkedIn outreach.
+- **Multi-channel stability** (Telegram, iMessage, Slack, Matrix, Discord, Google Chat): Delivery reliability fixes across all six channels — reduced dropped-message rate in multi-channel outreach.
+- **Deprecation**: Memory-specific embedding registration deprecated — migrate to general `embeddingProviders` API before next major release.
+
+## 2026-05-27 — OpenClaw v2026.5.26 upstream sync
+
+Upstream: [openclaw/openclaw v2026.5.26](https://github.com/openclaw/openclaw/releases/tag/v2026.5.26) — 140+ contributors.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Faster gateway startup**: Eliminates redundant plugin, channel, session, usage-cost, and filesystem scans on boot — agent response latency drops noticeably in high-load deployments; first-message cold-start lag is gone.
+- **Transcript infrastructure**: Transcript core now backs meeting summaries, source-provider chunks, user turns, media provenance, and CLI/TUI replay — sets the foundation for meeting-aware SDR follow-ups and call-to-CRM pipelines.
+- **Multi-channel stability** (Signal, iMessage, WhatsApp, Discord): Reaction approval flows added; media handling and delivery edge cases fixed across all four channels — more reliable multi-channel outreach at scale.
+- **Voice — Realtime Talk control**: Inspection, steering, and cancellation of live voice sessions now available from Web UI and Discord; wake-name tolerance improved — better live voice sales call management.
+- **Named authentication profiles**: Credential migration support lands — easier multi-account management for SDR teams running multiple WhatsApp/Telegram identities.
+- **Security hardening**: Browser snapshots respect SSRF policy; system-event text cannot spoof prompt markers; fetched files wrapped as external content; device tokens validated — enterprise-grade hardening for multi-tenant deployments.
+- **OpenTelemetry LLM spans**: Diagnostic spans for LLM content added — full observability for debugging slow or failed AI responses in production.
+- **Rastermill replaces Sharp**: Better image processing pipeline (media attachments, lead profile photos).
+- **Codex CLI bundled** (v0.134.0): Embedded AI coding tool available in all installations.
+- **Alpine Linux support**: Installation now works on Alpine-based Docker images — smaller production containers.
+- Fix: Plugin metadata now cached for performance (no repeated plugin scans).
+- Fix: OpenAI sampling, Codex recovery, Ollama normalization, and tool-schema guards hardened.
+- Fix: Activity tab, gateway tracing, and systemd Gateway hygiene improved.
+
+## 2026-05-24 — OpenClaw v2026.5.22 upstream sync
+
+Upstream: [openclaw/openclaw v2026.5.22](https://github.com/openclaw/openclaw/releases/tag/v2026.5.22) — 140+ contributors.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **4,100× gateway performance**: Pre-warmed provider auth-state map slashes `/models` latency from ~20s → ~5ms. Cold-start lag that caused first-message delays in high-load deployments is gone.
+- **Meeting Notes Plugin**: New source-only plugin with SDK source-provider contract. Supports auto-start capture, manual transcript imports, read-only CLI, and Discord voice as the first live source — sets the stage for meeting-aware SDR follow-ups.
+- **Claude 4.x model migration**: 1M-context handling migrated to GA-capable Claude 4.x models; retired Groq, GitHub Copilot, OpenAI, xAI, and old Claude catalog entries pruned; existing configs auto-upgraded.
+- **Embedding providers API**: General `embeddingProviders` capability contract and registration API landed — unlocks custom vector-search backends for memory/RAG in SDR workflows.
+- **Sub-agent context hardening**: Default sub-agent bootstrap context scoped to `AGENTS.md` + `TOOLS.md` only (reduces prompt bleed in multi-agent SDR pipelines).
+- **Windows installer**: Portable Git, Node.js, and pnpm now fully bootstrapped — enterprise Windows deployments no longer require pre-installed toolchain.
+- **Docker**: Pre-created workspace/config mount points with `node` ownership; Gateway bearer token no longer printed in setup logs (security fix).
+- Fix: Telegram markdown table mode preserved through outbound chunking (no more garbled tables in Telegram reports).
+- Fix: Local media from Telegram `sendMessage` actions now sent instead of dropped.
+- Fix: Telegram message replays deduplicated by chat/message identity.
+- Fix: Slack reasoning payloads suppressed before reply delivery.
+- Fix: Shared-secret bearer callers can now read/stream session history without scope header.
+- Fix: `pathPrepend` entries preserved ahead of shell startup `PATH` changes.
+- Fix: Denied exec approvals treated as terminal (no more ghost follow-up tool calls).
+- Fix: Context budget shown in session status when fresh usage unavailable.
+- Fix: Secrets apply now shows irreversible-action warning before confirmation.
+
+## 2026-05-21 — OpenClaw v2026.5.20 upstream sync
+
+Upstream: [openclaw/openclaw v2026.5.20](https://github.com/openclaw/openclaw/releases/tag/v2026.5.20) — 39 contributors.
+
+### Upstream highlights (cherry-picked for SDR deployments)
+
+- **Discord voice AI sessions**: voice follows configured users into channels with allowed-channel checks, multi-user handoff, bounded reconciliation, and DAVE recovery. IDENTITY.md / USER.md / SOUL.md injected by default via `voice.realtime.bootstrapContextFiles`.
+- **Policy plugin**: bundled policy-backed channel conformance checks, `openclaw doctor` lint findings, opt-in workspace auto-repair (`--fix`).
+- **xAI device-code OAuth**: headless/Docker authorizations no longer require a localhost browser callback.
+- **OpenRouter**: provider-level routing policies now honored.
+- **Agent-level local model lean**: `agents.list[].experimental.localModelLean` enables lean mode per agent without global toggle.
+- Fix: stale completion announcements now auto-recover (no more pipeline hangs).
+- Fix: subagent wildcard allowlist constraints work correctly in multi-tier hierarchies.
+- Fix: plugin compaction timeouts are bounded (no indefinite workspace hangs).
+- Fix: cron session lane isolation prevents scheduled tasks stealing interactive slots.
+- Fix: image generation 120s watchdog timer added.
+- Fix: embedding provider cleanup on search timeouts (prevents memory leaks).
+- Fix: `openclaw message` now includes stable `messageId` for audit trails.
+
+## 2026-05-22 — WhatsApp Onboarding Spec v0.5 (Path D — Multi-Device sync)
+
+Adds Path D: pull WhatsApp history directly from AITZAZ AI (no phone
+backup, no password, no USB). Customer scans a fresh QR, waits for
+Multi-Device sync to complete, then `bootstrap.sh` pulls the resulting
+.txt files from PA. Output is byte-compatible with v0.4 backup
+extractors so the downstream pipeline is unchanged.
+
+### Added
+
+- **scripts/fetch-from-pa.py** — Client-side downloader that calls PA's
+  `/whatsapp/export-history` endpoint and unpacks the ZIP into the
+  exports/ directory. 404 from PA = "history not yet imported", exits
+  with code 2 so wrapper scripts can fall back.
+- **bootstrap.sh** — Path B/C now offers a three-way choice:
+  Path D (PA fetch) / Auto (backup extractor) / Manual (drop files).
+  Path D prerequisites checklist explicit in the prompt — 6 steps
+  with the unavoidable "wait 30 min – 6 hours" expectation set
+  up-front so no client feels stalled.
+- **docs/UPSTREAM-POLICY.md** — Frozen policy. PA has zero source-level
+  coupling with upstream openclaw; cherry-pick rules only become
+  necessary if that ever changes.
+
+### Backend dependency (lives in AITZAZ AI repo)
+
+Path D requires a recent AITZAZ AI backend (≥ commit b1300a1):
+- `whatsapp_history_imports` table
+- `POST /v1/relay/history-batch` (Bearer bridge token)
+- `GET /whatsapp/export-history` (Bearer user token, ZIP response)
+
+And the relay must run with `SYNC_HISTORY=1`.
+
+### Why not just Path D for everyone
+
+Path D's hidden cost: WhatsApp Multi-Device sync only fires on a fresh
+QR scan. An already-linked device cannot retroactively backfill history
+even after `syncFullHistory: true` is set. So Path D = "tear down and
+re-link", which for a tenant whose AI has been running on WhatsApp
+means hours of downtime. Backup extraction (v0.4) stays the default
+for tenants that need zero-downtime onboarding.
+
+## 2026-05-22 — WhatsApp Onboarding Spec v0.4 (backup extractors)
+
+Removes the biggest manual step in the delivery pipeline: extracting .txt
+files from device backups. Bootstrap.sh now runs the extractors directly
+when the customer chooses the "Auto" path.
+
+### Added
+
+- **scripts/extract-ios-backup.py** — Reads an iOS encrypted local backup,
+  decrypts via `iphone_backup_decrypt`, extracts WhatsApp ChatStorage.sqlite,
+  schema-probes column names (resilient to iOS 16-18 schema drift), emits
+  one iOS-format `.txt` per 1-on-1 chat. Groups skipped by default.
+- **scripts/extract-android-backup.py** — Decrypts `msgstore.db.crypt15`
+  via `wa-crypt-tools`, joins against optional `wa.db` for proper contact
+  names, emits Android-format `.txt`. Supports both modern
+  `chat + jid` schema and legacy `chat_list` schema.
+- **scripts/requirements-extract.txt** — Optional dependency set kept
+  out of the core `requirements.txt` so Layer-A-only customers don't pay
+  for decryption native deps.
+- **bootstrap.sh** Path B/C "Auto" branch — auto-installs extraction deps,
+  asks for backup password / crypt15 key, runs the appropriate extractor
+  directly into `exports/`. Manual branch preserved as fallback.
+
+### Why this matters
+
+Without v0.4, a delivery engineer had to walk the customer through three
+external tools (iMazing for iOS, adb + wa-crypt-tools + a viewer for
+Android) just to get to `.txt`. v0.4 collapses all of that into one
+`bootstrap.sh` prompt sequence.
+
+## 2026-05-21 — WhatsApp Onboarding Spec v0.3 (Layer B + Layer C scripts)
+
+Closes the remaining gap to a true end-to-end delivery: Layer B miner,
+Layer A pusher, and Layer C chunk uploader. `bootstrap.sh` now wires
+them all together so a complete run produces:
+
+  - `profiles/`               → MemOS-ready customer YAMLs
+  - `golden/`                 → Layer B segments awaiting human review
+  - `layer-c-chunks.jsonl`    → conversation history chunks for KB import
+
+### Added
+
+- **scripts/mine-golden-segments.py** — Two-pass Layer B miner:
+  pass 1 sliding-window keyword detection (EN/ZH/ES signals across five
+  tag classes), pass 2 Haiku LLM scoring + retag + tactical-move
+  extraction. Drops segments scoring < 3.
+- **scripts/memos-upsert.py** — Pushes `profiles/*.yaml` to AITZAZ AI
+  MemOS endpoint. Honors `_auto_onboard` gate; supports `--force`.
+  Config sources: CLI > pa-config.json > env vars.
+- **scripts/bulk-embed.py** — Chunks `parsed/*.jsonl` into KB-ready
+  records with strict `customer_hash` metadata. Two modes:
+  emit JSONL for offline import, or `--upload` to push directly to
+  `/api/kb/upsert`. Embedding stays on the PA backend by design.
+- **samples/pa-config.example.json** — Reference shape for
+  `~/.pa-config.json`.
+- **bootstrap.sh** wires mining + Layer C chunking + optional push step
+  into the standard delivery flow.
+
+### Fixed
+
+- `whatsapp-export-parser.py` MEDIA regex now strips outer `<>` around
+  `<image omitted>` / `<Media omitted>` so chunked text is clean.
+- `bulk-embed.py` removed duplicated media tag in chunk text body.
+
+## 2026-05-21 — WhatsApp Onboarding Spec v0.2 (customer delivery kit)
+
+Turns the v0.1 spec into something a delivery engineer can actually run on
+a paying customer in one afternoon.
+
+### Added
+
+- **whatsapp-old-account-onboarding/scripts/bootstrap.sh**: Interactive
+  bootstrap that detects the environment, generates a PII salt, asks the
+  customer-scenario questions (Business API vs Business App vs personal;
+  iOS vs Android), walks through the extraction path, runs parser +
+  extractor, and prints a verification report. Re-runnable via
+  `.bootstrap-state`.
+- **docs/CUSTOMER-DELIVERY-GUIDE.md** + **.zh-CN.md**: Customer-delivery
+  decision tree (paths A / B.iOS / B.Android / C), explicit expectation-
+  alignment script for the kick-off call ("Business API has zero history"),
+  per-customer deliverables checklist, and pricing reference points.
+- Bootstrap entry block added at the top of `docs/README.md` and
+  `docs/README.zh-CN.md` so the one-command path is the first thing
+  delivery staff see.
+
+### Why this matters
+
+The most common pre-sales misconception is "we'll just hook up WhatsApp and
+the AI reads all my history". That's never true on Meta's official surface
+area. v0.2 makes that limitation visible in three places (sales script,
+kick-off doc, bootstrap output) so it never becomes a contract dispute.
+
+## 2026-05-21 — WhatsApp Legacy Account Onboarding Spec v0.1
+
+First-party spec for porting years of accumulated WhatsApp B2B sales
+conversations into AI-Agent-ready memory + style + history. Not an upstream
+OpenClaw cherry-pick — independent template extension.
+
+### Added
+
+- **whatsapp-old-account-onboarding/scripts/whatsapp-export-parser.py**:
+  iOS+Android dual-format parser for WhatsApp `.txt` exports. One-way PII
+  redaction via salted SHA-256, 24h-gap session segmentation, media reference
+  normalization.
+- **whatsapp-old-account-onboarding/scripts/customer-profile-extractor.py**:
+  Batch customer-profile extractor running Claude Haiku 4.5. Outputs YAML
+  suitable for MemOS upsert. Strict auto-onboard gate
+  (`red_flags` present / `relationship_score < 6` / `unfinished_commitments > 2`
+  → manual review queue).
+- **docs/README.md**: 8-step delivery SOP from export through shadow →
+  whitelist → graduated rollout.
+- **docs/OpenClaw-knowledge-base-import.md**: KB ingestion design for
+  `sales_playbook` (cross-customer style) and `conversation_history`
+  (per-customer, hard-isolated by `customer_hash`).
+- **docs/system-prompt-template.md**: Production system prompt with three
+  legacy-account identity strategies (transparent / soft / impersonation)
+  and five pre-launch verification cases.
+- **samples/example-customer-profile.yaml**: Reference MemOS document shape.
+
+### Notes
+
+- Layer A (MemOS) / Layer B (`sales_playbook`) / Layer C (`conversation_history`)
+  are independent — Layer A alone delivers ~60% of the value if you want to
+  ship in a week.
+- Runtime wiring into AITZAZ AI / OpenClaw MemOS and KB endpoints is left
+  as a placeholder; see `bulk-embed.py` and MemOS upsert curl in README.
+
+## 2026-05-20 — OpenClaw v2026.5.19
+
+### Improvements
+
+- **Skills/CLI**: `openclaw skills install` and `openclaw skills update` now support `--global` flag — installs a skill once for all agents on the node, eliminating per-workspace duplication in multi-agent deployments. Upstream: v2026.5.19
+- **Docker**: `OPENCLAW_IMAGE_PIP_PACKAGES` build argument added — install Python packages (pandas, pypdf2, ML libs) at container build time without custom base images. Upstream: v2026.5.19
+- **Browser**: `openclaw browser evaluate --timeout-ms` added for per-evaluation execution budgets; URL allowlist enforcement active for `/act` and `/highlight` routes — blocks off-scope navigation in browser automation. Upstream: v2026.5.19
+- **QA-Lab**: `openclaw qa suite --runtime-parity-tier` command with first-hour 20-turn and optional 100-turn parity scenarios; `openclaw qa coverage --tools` for tool fixture coverage reporting. Upstream: v2026.5.19
+- **Gateway/Performance**: Startup probe and resource-count costs attributed in restart traces; overlapped startup logging with channel sidecars for faster agent boot. Upstream: v2026.5.19
+- **Deps**: `@openclaw/proxyline` updated to 0.3.3. Upstream: v2026.5.19
+
+### Fixes
+
+- **WhatsApp**: Forced document delivery for media sends now honored — product catalogs and PDFs arrive as downloadable files, not inline thumbnails. Upstream: v2026.5.19
+- **Telegram**: Forum topics no longer block sibling topic traffic — parallel lead conversations in different topics stay independent. Upstream: v2026.5.19
+- **Telegram**: Streamed reply previews preserved with tool-warning final messages. Upstream: v2026.5.19
+- **Slack**: Delivered inbound message IDs persisted — prevents duplicate reply sends under high-traffic conditions. Upstream: v2026.5.19
+- **Discord**: Streamed reply previews preserved with tool-warning final messages. Upstream: v2026.5.19
+- **Stability**: Port validation accepts values above 65535 (regression fix). Upstream: v2026.5.19
+- **Stability**: Memory search scan optimized — prevents multi-second Node.js main thread pins during semantic search. Upstream: v2026.5.19
+- **Stability**: Session rotation fixed when transcript files are missing on first boot. Upstream: v2026.5.19
+- **Providers**: DeepSeek MCP tool schemas normalized with `anyOf`/`oneOf` unions; Google Gemini tool-call thought signatures recovered during native replay; OpenAI deterministic tool payload ordering preserved for prompt-cache reuse. Upstream: v2026.5.19
+- **Auth/Config**: Gateway config writes no longer fail on unresolved auth-profile SecretRefs; CLI provider resume bindings cleared on non-subagent `/reset`. Upstream: v2026.5.19
+- **Memory**: QMD lexical search on raw hyphenated queries while normalizing semantic searches; incremental sync for missing/newer/resized files. Upstream: v2026.5.19
+
+## 2026-05-18 — OpenClaw v2026.5.18
+
+### Improvements
+
+- **Android/Voice**: Talk Mode now routes through realtime Gateway relay voice sessions — streaming mic input and realtime audio playback on Android, matching desktop quality. Upstream: v2026.5.18
+- **Telegram/Routing**: Topic IDs preserved across requester-agent handoff — group forum conversations stay correctly threaded during lead qualification handoffs. Upstream: v2026.5.18
+- **Telegram/Commands**: `/btw` and read-only commands no longer abort active agent runs. Upstream: v2026.5.18
+- **Telegram/Transport**: HTTP 421 Misdirected Request retried on fallback transport — better delivery reliability on carrier-NAT and flaky mobile networks. Upstream: v2026.5.18
+- **Telegram/Forum**: Forum-topic origin preserved in delivery contexts — replies land in the correct topic thread. Upstream: v2026.5.18
+- **Skills**: Codex closeout review renamed to `autoreview`; meme-maker skill added with template search and rendering; Python pdb/remote-attach and Node inspector debugging skills added; spike workflow skill added. Upstream: v2026.5.18
+- **Browser**: Pending and recently handled modal dialogs surfaced in snapshots; `blockedByDialog` status added; `browser dialog --dialog-id` command for programmatic dialog handling — unblocks cookie-consent/login modal stalls in lead-capture flows. Upstream: v2026.5.18
+- **Image**: Sharp image processing with fallback chain to sips/ImageMagick/ffmpeg; image metadata probing no longer invokes external decoders unnecessarily. Upstream: v2026.5.18
+- **Security**: HTTPS managed forward-proxy endpoints with scoped CA trust supported — fixes SSL errors behind corporate proxies. Upstream: v2026.5.18
+- **Security**: Trusted admin HTTP RPC clients can now initiate WhatsApp QR login flows — enables headless channel provisioning without a physically present device. Upstream: v2026.5.18
+- **Config**: Per-agent code-mode config applied in schema and runtime catalog; ignored `timeoutMs` keys removed from agent-model config. Upstream: v2026.5.18
+- **Infrastructure**: `OPENCLAW_IMAGE_APT_PACKAGES` Docker/Podman build argument added for custom apt packages; Pi packages upgraded to 0.75.1, Node.js minimum raised to 22.19. Upstream: v2026.5.18
+- **Mac**: Settings pages redesigned with consistent card layouts; Dashboard/Chat/Canvas Dock shortcuts added; improved Gateway connection settings and sidebar visibility. Upstream: v2026.5.18
+- **Providers**: Updated support for OpenAI, Google Gemini, xAI, Xiaomi (MiMo), Together, Anthropic, GitHub Copilot, and Moonshot/Kimi. Upstream: v2026.5.18
+
+## 2026-05-14 — OpenClaw v2026.5.12
+
+### Improvements
+
+- **Deps/Install**: Externalized WhatsApp (Baileys), Slack, Amazon Bedrock, and Anthropic Vertex dependencies — core installs only pull in active channel deps. Upstream: v2026.5.12
+- **Deps/Install**: pnpm upgraded to v11 with improved plugin install stability and peer-dependency preservation during updates. Upstream: v2026.5.12
+- **Telegram/Polling**: Isolated polling with durable local message spooling — inbound messages buffered to disk during network interruptions and drained in order on reconnect, eliminating silent message loss. Upstream: v2026.5.12
+- **Telegram/Media**: Safer group media handling — message ownership and attachment type validated before skill dispatch, preventing skill dispatch failures from unrecognized media types in group chats. Upstream: v2026.5.12
+- **Telegram/Streaming**: HTML/Markdown formatting preserved throughout streamed replies, not just the final chunk. Upstream: v2026.5.12
+- **Telegram/Auth**: Bot token rotation now reseeds polling state correctly; message sequencing fixed during high-load bursts. Upstream: v2026.5.12
+- **Transcript**: Peak transcript streaming memory reduced from +252 MB to +27 MB (−89%) for long sessions. Upstream: v2026.5.12
+- **Security/Gateway**: Command provenance validated at gateway boundary — untrusted-source commands rejected before reaching skill dispatch. Upstream: v2026.5.12
+- **Security/Pairing**: Device pairing requests now require explicit node-level approval; proxy-scoped access validated at binding time. Upstream: v2026.5.12
+- **Security/Creds**: Provider credential env vars read and validated at channel boot with stricter type checking; Slack no longer accepts malformed env var values. Upstream: v2026.5.12
+- **Codex/OpenAI**: Auth-profile-backed media tools — credentials resolved from active auth profile, fixing silent failures under non-default profiles. Upstream: v2026.5.12
+- **Codex/OpenAI**: Context-engine thread rotation and app-server/runtime fallback behavior improved; better MCP server projection for tool routing. Upstream: v2026.5.12
+- **UI**: Auto-scroll mode selector added to Control UI and WebChat; session history sequence preserved through live updates. Upstream: v2026.5.12
+- **Windows**: Credential path handling fixed for paths with spaces and non-ASCII characters. Upstream: v2026.5.12
+- **Docker**: Env var leakage between containers in multi-agent Docker Compose setups patched. Upstream: v2026.5.12
+- **iMessage**: Multiple reliability fixes. Upstream: v2026.5.12
+
+## 2026-05-07 — OpenClaw v2026.5.7
+
+### Bug Fixes
+
+- **WhatsApp/Routing**: Baileys LID forward mapping now routes correctly in multi-device sessions — forward-mapped contacts were previously silently dropped in multi-SIM/multi-number deployments. Fixes #74925. Upstream: v2026.5.7
+- **WhatsApp/Media**: Single captioned media auto-reply now emits as one combined message instead of splitting into a bare caption + uncaptioned media file. Fixes #78770. Upstream: v2026.5.7
+- **Telegram/Auth**: `accessGroup:*` sender allowlists now enforced for DMs, group messages, and native commands — wildcard allowlists no longer silently pass unauthorized senders through to skill dispatch. Fixes #78660. Upstream: v2026.5.7
+- **Native Commands**: Owner enforcement honored for native command handlers, preventing non-owner callers from invoking privileged workflows. Fixes #78864. Upstream: v2026.5.7
+- **Cron/CLI**: Computed `status` field now included in `cron list --json` and `cron show --json` output, making cron pipeline monitoring fully scriptable. Fixes #78701. Upstream: v2026.5.7
+- **Channels/CLI**: `openclaw channels list` now shows channel-only entries by default; `--all` flag added to include bundled channels; state rendering and auth details moved to dedicated commands. Fixes #78456. Upstream: v2026.5.7
+- **OpenAI**: `openai/chat-latest` accepted as a valid API-key model override, routing to ChatGPT Instant. Upstream: v2026.5.7
+- **Active Memory**: Global memory toggles now require admin scope, preventing non-admin operators from wiping shared agent memory in multi-tenant deployments. Fixes #78863. Upstream: v2026.5.7
+- **Auto-reply/Auth**: Authorization hooks now gate skill tool dispatch for auto-reply flows. Fixes #78517. Upstream: v2026.5.7
+- **Agents/Context**: Cached context invalidated on history changes, preventing stale context in long multi-turn qualification sequences. Fixes #78163. Upstream: v2026.5.7
+- **Agents/Compaction**: Compaction summary reserve tokens clamped to each model's output limit, preventing silent failures or truncation on large summaries in extended conversations. Fixes #54392. Upstream: v2026.5.7
+- **Gateway/Sessions**: New transcript file generated on session rollover, preserving full audit trail. Fixes #78607. Upstream: v2026.5.7
+- **Gateway/Sessions**: Cached skills snapshots cleared during `/new` and `sessions.reset`. Fixes #78873. Upstream: v2026.5.7
+- **Plugins/Publishing**: Retry logic for transient ClawHub CLI dependency install failures; preview-passing plugins remain publishable when one preview cell flakes. Upstream: v2026.5.7
+- **Plugins/Install**: Consistent POSIX npm lifecycle shell usage across install, update, and uninstall operations. Upstream: v2026.5.7
+- **Tavily**: Dedicated tool credentials resolved from runtime config snapshots. Fixes #78610. Upstream: v2026.5.7
+- **Discord/Message**: Provider-prefixed target parsing fixed for channel sends. Fixes #78572. Upstream: v2026.5.7
+- **Discord/Voice**: Permission auditing in capabilities and status checks; enhanced capture smoothness with configurable silence grace period. Upstream: v2026.5.7
+- **Telegram Polling**: Watchdog tied to `getUpdates` liveness, preventing polling zombies on network interruption. Fixes #78422. Upstream: v2026.5.7
+- **Telegram/Messages**: Successful same-chat sends now treated as delivered. Fixes #78685. Upstream: v2026.5.7
+- **Cron/Doctor**: Persisted jobs with invalid `payload.model` values repaired. Fixes #78549. Upstream: v2026.5.7
+- **Cron/Isolated Runs**: Delivery fails before execution when target unavailable, preventing phantom run logs. Fixes #78608. Upstream: v2026.5.7
+- **Doctor/Codex OAuth**: Route recovery and preservation during updates. Fixes #78407. Upstream: v2026.5.7
+- **Agents/Subagents**: Session-mode registry honors `archiveAfterMinutes`. Fixes #78263. Upstream: v2026.5.7
+- **Agent Delivery**: Proper `deliverySucceeded=false` reporting. Fixes #78532. Upstream: v2026.5.7
+- **Gateway/Tasks**: Stale task reconciliation preventing reload blocking. Upstream: v2026.5.7
+- **Plugins/Channel Setup**: `setChannelRuntime` forwarded from external entries. Fixes #77799. Upstream: v2026.5.7
+- **Commands/BTW**: Brackets showing missing-question placeholder fixed. Upstream: v2026.5.7
+- **Model Providers**: APNG normalization, Gemini 3 signature preservation, legacy key acceptance, and sanitization repair. Upstream: v2026.5.7
+- **Telegram/Models**: Dot-containing provider ID parsing for callback buttons. Fixes #38745. Upstream: v2026.5.7
+- **Codex/Approvals**: Guardian hook removal, decision remembering, and validation improvements. Upstream: v2026.5.7
+
+## 2026-05-06 — OpenClaw v2026.5.6
+
+### Bug Fixes
+
+- **Doctor/OpenAI config**: `doctor --fix` now preserves existing OpenAI routes — the legacy Codex route rewrite is excluded from the v2026.5.6 release branch, so valid OpenAI model configs are never overwritten unless a supported repair path explicitly applies. SDR deployments using custom OpenAI-compatible providers are safe to run `doctor --fix` without risk of route regression. Upstream: v2026.5.6
+- **Plugins/runtime fetch**: Third-party symbol metadata is stripped from plain request header dictionaries before they are passed into native `fetch` or `Headers`, so SDK and guarded/proxy fetch paths no longer reject otherwise valid plugin requests. Fixes #77846. Upstream: v2026.5.6 (thanks @shakkernerd)
+- **Debug proxy**: Captured fetch header dictionaries are normalized before request replay, so symbol metadata from caller-owned header objects cannot cause debug-proxy fetches to fail. Upstream: v2026.5.6
+- **Web fetch/Gateway**: Guarded dispatcher cleanup is now bounded after request timeouts — timed-out fetches return proper tool errors instead of leaving Gateway tool lanes permanently active. Fixes #78439. Upstream: v2026.5.6 (thanks @obviyus)
+
+## 2026-05-06 — OpenClaw v2026.5.5
+
+### Highlights
+
+- **WhatsApp: Reply-blocking stale TUI clients stopped correctly**
+  Only verified stale local TUI clients that degrade the Gateway event loop are now stopped; healthy Gateway traffic is unaffected. The `/new`/`/reset` session-memory hook also runs off the reply path, so memory captures no longer block WhatsApp message delivery. For SDR agents handling hundreds of leads per day, both fixes recover measurable response-rate. Upstream: v2026.5.5
+
+- **Feishu: Multi-turn topic sessions restored**
+  Missing native topic starter thread IDs are now hydrated before session routing, so the first turn and all follow-ups in a Feishu conversation stay in the same topic thread. Previously they scattered across disconnected sessions, silently fragmenting multi-turn qualification sequences. Fixes #78262. Upstream: v2026.5.5
+
+- **Gateway/OpenAI-compatible: First-token streaming fixed**
+  The initial assistant-role SSE chunk is now flushed correctly, eliminating the race where cold agent startup left `/v1/chat/completions` clients with a bodyless 200 response until idle timeout. Custom frontends, Zapier hooks, and CRM integrations built on OpenClaw's OpenAI-compatible API now receive the first token immediately. Upstream: v2026.5.5
+
+- **Docker security: NET_RAW/NET_ADMIN dropped + no-new-privileges**
+  The bundled `docker-compose.yml` now drops `NET_RAW` and `NET_ADMIN` capabilities and enables `no-new-privileges` for the gateway container, hardening production B2B SDR deployments in shared container infrastructure. Upstream: v2026.5.5
+
+### Bug Fixes
+
+- **Discord**: Live reasoning text now shown in progress drafts; plain-text control commands (`/steer` etc.) routed through proper authorization gate instead of being silently dropped. Upstream: v2026.5.5 (fixes #78080)
+- **LINE**: `dmPolicy: "open"` configs without wildcard `allowFrom` now rejected at validation instead of silently blocking inbound DMs after acknowledgement. Upstream: v2026.5.5 (fixes #78316)
+- **Telegram/Codex**: Message-tool-only progress drafts stay visible; native Codex tool progress rendered once per tool without duplicate lines. Upstream: v2026.5.5 (fixes #75641)
+- **Matrix/approvals**: Approval delivery retried up to 3× with backoff on transient Matrix send failures, preventing stranded approval prompts. Upstream: v2026.5.5 (#78179)
+- **Slack**: Socket Mode SDK error context and structured Slack API fields now preserved in reconnect logs. Upstream: v2026.5.5
+- **iOS pairing**: Setup-code and manual `ws://` connects allowed for private LAN/.local gateways; explicit gateway passwords preferred over stale bootstrap tokens. Fixes #47887. Upstream: v2026.5.5
+- **Providers/xAI**: OpenAI-style reasoning effort controls stripped from native Grok Responses models; bundled xAI thinking profile clamped to `off`, fixing `Invalid reasoning effort` on `xai/grok-4.3`. Upstream: v2026.5.5
+- **Providers/Fireworks**: Kimi K2.5/K2.6 models exposed as thinking-off-only with `thinking: disabled`; no unsupported `reasoning*` params sent. Upstream: v2026.5.5
+- **Plugins/install**: Managed npm plugin `openclaw` peer links re-asserted after every shared-root install/update/uninstall, preventing broken SDK resolution across plugins. Upstream: v2026.5.5
+- **Plugins/update**: Official plugins (Codex, Discord, WhatsApp, diagnostics) stay synced during host updates even when disabled or exact-pinned; corrupt managed plugin records tolerated. Upstream: v2026.5.5
+- **Hooks/session-memory**: Collision suffixes added to fallback memory filenames for same-minute `/new`/`/reset` invocations, preserving SDR audit trail. Upstream: v2026.5.5
+- **Control UI/sessions**: Agent runtime shown as filterable column in Sessions table; session history redesigned with modern checkpoint cards. Upstream: v2026.5.5
+- **Control UI/performance**: Chat and channel tabs stay responsive during slow history payloads; partial channel status labelled. Upstream: v2026.5.5
+- **TUI**: Clean exit on terminal loss; session picker bounded to recent rows for fast startup; heartbeat sessions no longer restored as chat session. Upstream: v2026.5.5
+- **Doctor/sessions**: Heartbeat-poisoned main session store entries moved to recovery keys; `doctor --fix` can now repair `agent:main:main` heartbeat history. Upstream: v2026.5.5
+- **Doctor/Codex**: Legacy `openai-codex/*` routes repaired to canonical `openai/*` across models, fallbacks, hooks, and channel overrides. Upstream: v2026.5.5
+- **Gateway/shutdown**: Delayed post-ready maintenance cancelled on close; maintenance/cron suppressed after quick restarts, eliminating orphaned background timers. Upstream: v2026.5.5
+- **Gateway/media**: Media sidecar skipped for unrelated HTTP routes; non-media requests no longer pay media initialization cost. Upstream: v2026.5.5
+- **CLI/sessions**: Orphaned transcript, checkpoint, and trajectory artifacts pruned during `sessions cleanup`. Fixes #77608. Upstream: v2026.5.5
+- **Auth profiles**: Provider cooldown not applied on format-level rejections, so fallback profiles can still be tried on unsupported model names. Upstream: v2026.5.5
+- **Exec approvals**: Guarded copy fallback on Windows rename-overwrite rejection for `exec-approvals.json`. Fixes #77785. Upstream: v2026.5.5
+
+## 2026-05-05 — OpenClaw v2026.5.4
+
+### Highlights
+
+- **Google Meet/Voice: Gemini voice bridge with Twilio dial-in**
+  AI agents can now speak through Google Meet via Twilio dial-in, powered by the Gemini realtime voice bridge. Paced audio streaming, backpressure-aware buffering, and barge-in queue clearing give sales agents fluid, interruption-safe voice conversations in Meet calls. For SDR teams running voice prospecting workflows, this closes the loop on fully automated voice outreach without leaving Google Meet.
+  Upstream: v2026.5.4 (#77064)
+
+### New Features
+
+- **WhatsApp: Explicit Newsletter/Channel outbound targets**
+  WhatsApp channel routing now supports explicit `@newsletter` targets for outbound message sends. Broadcast campaigns to WhatsApp channels and newsletters are now first-class, letting B2B SDR agents push product announcements, trade fair follow-ups, and promotions to subscriber audiences at scale.
+  Upstream: v2026.5.4 (fixes #13417)
+
+- **Slack: Rich Block Kit progress drafts**
+  Slack streaming gains `streaming.progress.render: "rich"` for Block Kit progress drafts backed by structured progress line data, with automatic line trimming when Block Kit limits are hit. Sales notification pipelines in Slack now render structured agent progress instead of plain text.
+  Upstream: v2026.5.4
+
+- **Models/auth: Inspect saved auth profiles**
+  New `openclaw models auth list [--provider <id>] [--json]` command lets operators audit saved per-agent auth profiles without exposing secrets. Useful for multi-agent B2B SDR deployments with separate credentials per channel or customer segment.
+  Upstream: v2026.5.4
+
+- **Plugins/SDK: `before_agent_finalize` retry instructions**
+  Workflow plugins can now request one additional model pass via bounded `before_agent_finalize` retry instructions. Enables more sophisticated multi-step SDR qualification flows that can re-consult the model before finalizing agent output.
+  Upstream: v2026.5.4
+
+- **Control UI/chat: Agent-first filter and responsive layout**
+  The chat session picker gains an agent-first filter, responsive layout across phone/tablet/desktop, and collapsed duplicate heartbeat messages. Control UI becomes more usable for SDR supervisors monitoring multiple live conversations from mobile.
+  Upstream: v2026.5.4
+
+### Performance
+
+- **Agents: Workspace-scoped plugin metadata reuse**
+  Resolved workspace is now passed through BTW, compaction, embedded-run model generation, and PDF model setup, so agent-dir model refreshes reuse the current workspace-scoped plugin metadata snapshot instead of falling back to cold plugin metadata scans. Faster context switches in multi-agent SDR deployments.
+  Upstream: v2026.5.4 (#77519, #77532)
+
+- **Gateway startup: Deferred sidecars and fast-path bundled plugin metadata**
+  Non-readiness sidecars now defer until after the ready signal. Trusted bundled plugin metadata uses a fast path. Gateway startup benchmarks improve noticeably for containerized SDR deployments.
+  Upstream: v2026.5.4
+
+- **Prompt cache: Chat continuation cache reuse restored**
+  Per-turn runtime context is now kept out of ordinary chat system prompts while still delivering hidden current-turn context. Prompt-cache reuse on chat continuations is restored, reducing API costs for long-running SDR conversation threads.
+  Upstream: v2026.5.4 (fixes #77431)
+
+### Bug Fixes
+
+- **WhatsApp/onboarding: Allowlist entries now canonicalized to digit-only phone IDs**
+  Setup and pairing allowlist entries are canonicalized to WhatsApp's digit-only phone IDs, so E.164, JID, and `whatsapp:` inputs reliably match WhatsApp Web sender IDs after onboarding.
+  Upstream: v2026.5.4
+
+- **Docker: macOS EACCES workspace path fix**
+  Container-side `OPENCLAW_CONFIG_DIR` and `OPENCLAW_WORKSPACE_DIR` are now pinned in Compose, preventing host-style workspace paths from leaking into runtime code and causing `EACCES: permission denied, mkdir '/Users'` on macOS Docker deployments.
+  Upstream: v2026.5.4 (fixes #77436)
+
+- **Agents/subagents: Long sub-agent reports no longer silently lost**
+  Prefix-only completion announce replies are now detected and fall back to the captured child result. Sub-agent reports are no longer silently truncated in multi-step SDR qualification flows.
+  Upstream: v2026.5.4 (fixes #76412)
+
+- **CLI/sessions: Bounded session list output**
+  `openclaw sessions` is now capped at 100 rows by default with `--limit <n|all>` and JSON pagination metadata. Large SDR session stores no longer cause unbounded output fan-out.
+  Upstream: v2026.5.4 (fixes #77500)
+
+- **Active Memory: Bounded memory search query**
+  Memory sub-agent search queries are now bounded so channel/runtime metadata does not become the search string. Recall quality in long SDR conversation threads improves.
+  Upstream: v2026.5.4 (fixes #65309)
+
+- **Discord: IPv4 preference for reliable startup**
+  Discord REST and gateway WebSocket startup now prefer IPv4, fixing stalls on IPv4-only networks that previously blocked Gateway READY and inbound message dispatch.
+  Upstream: v2026.5.4 (fixes #77398)
+
+- **Control UI/Talk: Realtime voice error recovery**
+  Failed Talk startup errors are now dismissable; stale Talk error state clears on dismiss; next Talk click retries from a failed session without a separate stop click.
+  Upstream: v2026.5.4 (fixes #77071)
+
+- **Telegram: Persistent interactive buttons in replies**
+  Shared interactive reply buttons now render in Telegram reply delivery, so plugin approval messages correctly show inline keyboards.
+  Upstream: v2026.5.4 (#76238)
+
+### Security
+
+- **Browser/SSRF: Tab-scoped debug routes now enforce navigation policy**
+  Existing-session screenshots, snapshots, console, network request, trace, storage, and related tab-scoped debug routes now enforce the current-tab URL navigation policy before collection. Blocked tabs return a policy error rather than being read and redacted after the fact.
+  Upstream: v2026.5.4 (#75731)
+
+- **Windows: SystemRoot/WINDIR/LOCALAPPDATA/ComSpec hardening**
+  Multiple Windows security fixes: `icacls.exe`/`whoami.exe` resolution validated through Windows install root; `reg.exe` pinned to canonical install root; `LOCALAPPDATA` blocked from workspace `.env`; `.cmd`/`.bat` wrapper routed through install-root resolver. Workspace dotenv overrides can no longer redirect system binaries.
+  Upstream: v2026.5.4 (#74458, #74454, #77470, #77472)
+
+- **Exec approvals: `env -S` and `exec` carrier detection**
+  Approval explanations now detect `env -S` split-string command-carrier risks and POSIX `exec` inline-eval payloads, closing gaps where hidden payloads could bypass command risk checks.
+  Upstream: v2026.5.4
+
+## 2026-05-04 — OpenClaw v2026.5.3-1 hotfix
+
+### Bug Fixes
+
+- **Plugins/security: Official bundled plugin packages no longer blocked by install scanner**
+  The plugin install scanner introduced in v2026.5.3 was triggering false positives when `process.env` access and normal API sends appeared in distant parts of the same compiled bundle — incorrectly flagging and blocking official bundled plugins (file-transfer, memory, web-search) during installation. v2026.5.3-1 corrects the bundle-aware pattern matching logic. Official plugins install cleanly; security enforcement against untrusted packages is unchanged. No config changes required — update the npm package and the fix applies.
+  Upstream: v2026.5.3-1
+
+## 2026-05-04 — OpenClaw v2026.5.3 upstream sync
+
+### Breaking Changes
+
+- **Gateway: Invalid config fails closed on startup/hot-reload**
+  Gateway startup and hot reload no longer auto-restore invalid config. If your config has validation errors, the gateway now fails closed rather than recovering silently. Run `openclaw doctor --fix` after upgrading to repair legacy config automatically. This is the correct behavior for production deployments where silent misconfiguration is dangerous.
+  Upstream: v2026.5.3
+
+- **Tools deny list: `apply_patch` no longer implicitly denied**
+  The tools deny list no longer implicitly denies `apply_patch`. If you relied on implicit patch write blocking, you must now explicitly add `apply_patch` to your deny list. Audit your tool security profiles before upgrading if patch writes are a concern.
+  Upstream: v2026.5.3
+
+### New Features
+
+- **File Transfer Plugin: Secure document delivery over AI SDR channels**
+  A new bundled File Transfer plugin adds `file_fetch`, `dir_list`, `dir_fetch`, and `file_write` tools for binary operations on paired nodes. Default-deny per-node path policy, symlink traversal controls, and a 16 MB per-round-trip ceiling make this a controlled, auditable document transfer layer built into the conversation runtime. For manufacturing, electronics, and textiles exporters where every inquiry involves spec sheets, MOQ tables, and compliance docs, AI SDR agents can now deliver documents inside the conversation without human escalation.
+  Upstream: v2026.5.3
+
+- **WhatsApp: Newsletter targets for broadcast outreach**
+  WhatsApp channel routing gains newsletter targets — the ability to broadcast messages to a defined contact list. Product launch announcements, trade show follow-ups, and seasonal promotions to distributor networks are now native capabilities without a separate broadcast tool. Works in tandem with the inbound reply dependency fix (`@whiskeysockets/libsignal-node`) also shipping in this release.
+  Upstream: v2026.5.3
+
+- **Session control: `/steer` and `/side` commands**
+  `/steer <message>` injects a steering message into the active session without starting a new turn — enabling SDR supervisors to adjust agent behavior mid-conversation without disrupting flow. `/side` (alias for `/btw`) handles side questions when idle without starting new turns. For human-in-the-loop escalation workflows, these commands make supervisor intervention cleaner.
+  Upstream: v2026.5.3
+
+- **Gateway performance: Lazy-loading of plugin discovery and session metadata**
+  Gateway startup now lazy-loads plugin discovery, cron, schema, and session metadata. Faster startup for container deployments that restart frequently; more responsive Control UI during high-load periods; optional tool factories skipped when blocked by deny lists, reducing hot-path overhead.
+  Upstream: v2026.5.3
+
+- **Plugin hardening: npm dependency reporting and official plugin install**
+  Official plugin installation, updates, and onboarding now behave like first-class package installs with improved npm dependency reporting. Manual setup can install optional official plugins with ClawHub-backed diagnostics. `plugins list --json` includes dependency install state.
+  Upstream: v2026.5.3
+
+- **Slack: Live transport QA runner with canary and mention-gating coverage**
+  Slack gains a live transport QA runner providing canary and mention-gating coverage. Delivery reliability is measurably verifiable for teams running Slack-based SDR workflows.
+  Upstream: v2026.5.3
+
+### Bug Fixes
+
+- **WhatsApp: Fixed `@whiskeysockets/libsignal-node` dependency preventing inbound replies**
+  Resolved the dependency issue that was blocking inbound WhatsApp replies. Full inbound/outbound reliability restored.
+  Upstream: v2026.5.3
+
+- **Telegram: Forum-topic conversation IDs correctly handled in embedded recall runs**
+  Scoped Telegram forum-topic IDs are now properly handled in embedded recall runs and Active Memory. SDR agents operating in Telegram groups with forum topics work reliably.
+  Upstream: v2026.5.3
+
+- **Discord: Native typing cue sent immediately after DM acceptance**
+  Discord now sends the native typing indicator immediately after DM acceptance, improving responsiveness perception for prospects.
+  Upstream: v2026.5.3
+
+- **Matrix: Blank progress-draft messages avoided when progress labels disabled**
+  Matrix channel no longer sends blank draft messages when progress labels are disabled.
+  Upstream: v2026.5.3
+
+- **Gateway systemd: Operator-added secrets preserved across re-staging**
+  Operator-added secrets are preserved during re-staging while OpenClaw-managed keys are cleared. No more manual secret restoration after gateway re-stages.
+  Upstream: v2026.5.3
+
+- **Cron: Startup state persisted to prevent repeated health-check repairs**
+  Repaired startup state is now persisted, preventing repeated health-check repair cycles on startup.
+  Upstream: v2026.5.3
+
+- **Memory/LanceDB: `apache-arrow` declared as bundled peer dependency**
+  Eliminates dependency resolution issues for deployments using LanceDB-backed Active Memory.
+  Upstream: v2026.5.3
+
+- **Web fetch: Optional proxy support via `useTrustedEnvProxy`**
+  Operator-controlled environments can now route web fetch calls through a trusted proxy.
+  Upstream: v2026.5.3
+
+- **`doctor --fix`: Commits safe legacy migrations even with unrelated validation issues**
+  `doctor --fix` no longer aborts safe migrations when unrelated validation issues are present.
+  Upstream: v2026.5.3
+
+---
+
+## 2026-05-02 — OpenClaw v2026.5.2 upstream sync
+
+### New Features
+
+- **ClawHub: Plugin management with diagnostics and install records**
+  ClawHub's plugin management layer expands with diagnostics, install records, and npm-first dependency resolution. Plugin diagnostics surface installation failures and version conflicts before they cause silent runtime errors; install records give ops teams an audit trail of which plugin version was active during any conversation window; npm-first transitions ensure dependency trees resolve predictably across fresh deploys and Docker container restarts. For enterprise deployments running 20+ plugins (custom channel adapters, CRM integrations, webhook handlers), this closes the previous gap where plugin health was invisible between gateway restarts.
+  Upstream: v2026.5.2
+
+- **Session listing: Optimized for large stores**
+  Session listing operations for large stores are streamlined, and repeated plugin tool descriptor hashing is reduced. At 5,000+ concurrent prospect sessions, dashboard load times and session queries are significantly faster. Previously, listing operations degraded 3–4× at 5K sessions and risked query timeouts at 10K+; v2026.5.2 keeps listing near-baseline across all tested scales.
+  Upstream: v2026.5.2
+
+- **Web search: Improved Brave, SearXNG, and Firecrawl**
+  Brave Search, SearXNG, and Firecrawl web search integrations receive reliability and relevance upgrades. AI SDR agents that research prospects before outreach inject higher-quality context into first-touch messages.
+  Upstream: v2026.5.2
+
+- **Provider streaming: Anthropic, DeepSeek, and OpenAI-compatible TTS fixes**
+  Anthropic streaming fixes an edge-case stream interruption during long generation; DeepSeek replay resolves multi-turn conversation misalignment; OpenAI-compatible TTS/Realtime improves voice-call routing for call-center SDR workflows.
+  Upstream: v2026.5.2
+
+### Bug Fixes
+
+- **WhatsApp: Improved targeting and segment routing**
+  WhatsApp channel routing receives targeted fixes improving message delivery reliability to specific contact segments. Fewer messages routed to wrong conversation threads; more consistent delivery across large contact lists. Works in tandem with v2026.4.29's People Memory for more reliable multi-segment outbound sequences.
+  Upstream: v2026.5.2
+
+- **Telegram: Slash-command feedback and session handling**
+  Slash-command feedback is more reliable; session handling for high-traffic Telegram groups is more stable.
+  Upstream: v2026.5.2
+
+- **Gateway and startup: Leaner plugin loading and runtime config**
+  Gateway and agent startup paths are leaner across plugin loading and runtime configs. Filesystem guards and large runtime config handling are optimized.
+  Upstream: v2026.5.2
+
+- **Control UI: Session, Cron, and WebSocket resilience**
+  Control UI resilience improved for Sessions, Cron, and WebSocket connections.
+  Upstream: v2026.5.2
+
+---
+
+## 2026-05-01 — OpenClaw v2026.4.29 upstream sync
+
+### Breaking Changes
+
+- **Tool security: explicit `alsoAllow` required**
+  Configured tool sections no longer implicitly widen restrictive security profiles. Any tool-access expansion beyond a restrictive profile now requires an explicit `alsoAllow` entry in configuration. If you have custom tool-profile configurations relying on implicit widening, audit and add explicit entries before upgrading — implicit expansions now fail closed. This is the correct default for enterprise deployments where tool scope must be auditable and traceable.
+  Upstream: v2026.4.29
+
+### New Features
+
+- **Memory/wiki: People-aware knowledge base with relationship graphs**
+  The Memory system now maintains a structured people wiki alongside conversation memory. Each contact your AI SDR interacts with gets a person card (name, role, company, decision-making authority), canonical aliases deduplicated across channels (the same person on WhatsApp/Telegram/email merges into one record), relationship graphs mapping org structure and procurement chains, and provenance views tracing which conversations produced which facts. For B2B export teams, relationship graphs unlock org-structure reasoning: "Liu Wei is the procurement manager who reports to Director Zhang, who signed the last PO." That's the context that moves deals — previously only experienced sales reps carried it; now the AI does automatically.
+  Upstream: v2026.4.29
+
+- **Active Memory: Per-conversation channel filters**
+  Optional `allowedChatIds` and `deniedChatIds` per-conversation filters let you wall off memory context by channel or contact group. Keep enterprise account memory separate from SMB prospect pools, or enforce GDPR data-separation between regional deployments, without additional infrastructure.
+  Upstream: v2026.4.29
+
+- **Agents/commitments: Opt-in follow-up commitment system with heartbeat delivery**
+  When your AI SDR commits to a follow-up during a conversation ("I'll send the spec sheet tomorrow"), the commitment is now automatically detected, persisted, and delivered on schedule via heartbeat. Hidden batched extraction means zero UX friction on the conversation side; per-agent and per-channel scoping keeps WhatsApp and Telegram follow-up queues separate. This transforms the agent from a reactive chat interface into a proactive account manager that keeps its word without human hand-holding.
+  Upstream: v2026.4.29
+
+- **Providers/NVIDIA: New bundled inference provider**
+  NVIDIA joins as a bundled provider plugin with API-key onboarding and a static model catalog. Enables high-throughput inference for pipelines processing 1,000+ daily conversations, and — combined with v2026.4.27's Docker GPU passthrough — completes the story for fully air-gapped, on-premise AI SDR deployment on NVIDIA hardware. Use the NVIDIA cloud API with just an API key, or route through your own on-premise NVIDIA GPUs via Docker.
+  Upstream: v2026.4.29
+
+- **Docker: `OPENCLAW_SKIP_ONBOARDING` for automated installs**
+  New environment variable bypasses the interactive onboarding wizard, making Docker-based enterprise deployments fully scriptable for CI/CD pipelines and infrastructure-as-code workflows. Set `OPENCLAW_SKIP_ONBOARDING=1` in your Compose or Kubernetes manifest to deploy without any interactive prompts.
+  Upstream: v2026.4.29
+
+- **Localization: 6 new locales**
+  Persian (Farsi), Dutch, Vietnamese, Italian, Arabic, and Thai join the locale registry. B2B export teams can now operate natively in buyer languages across GCC/MENA (Arabic), Southeast Asia (Vietnamese, Thai), EU (Dutch, Italian), and Central Asia (Persian) markets without additional localization work on your end.
+  Upstream: v2026.4.29
+
+- **Messages/queue: Active-run queueing defaults to `steer` mode**
+  Message queue now defaults to `steer` with a 500ms followup fallback debounce, improving responsiveness in high-velocity conversation threads while preventing message storms during rapid back-and-forth exchanges.
+  Upstream: v2026.4.29
+
+- **Gateway diagnostics: Startup timeline recording**
+  Opt-in startup diagnostics now record a gateway lifecycle timeline covering plugin-load phases and event-loop readiness. Faster operational root-cause analysis when the Gateway is slow to accept connections — essential for debugging cold-start performance in large plugin collections (20+ plugins).
+  Upstream: v2026.4.29
+
+### Fixed
+
+- **WhatsApp**: Improved delivery confirmation and liveness checking — fewer silent failures when WhatsApp Web connectivity degrades during high-volume outbound sequences
+- **Telegram**: Long-polling client timeout fixes and improved message-edit durability for streaming — more reliable for broadcast sequences and real-time reply flows
+- **Slack**: Bot-authored messages with `allowBots=true` now require explicit channel allowlisting (security hardening — prevents unintended bot-to-bot relay in shared workspaces)
+- **OpenAI Codex**: Preserved wrapped streams during OAuth bearer injection; restored `openai-codex/gpt-5.4-mini` for ChatGPT/Codex OAuth runs
+- **Agents/subagents**: Bounded automatic orphan recovery with persisted tombstones prevents runaway orphaned sub-agent threads from consuming resources
+- **Security**: Timing-safe credential byte comparison for password checks; HTML tag stripping during plain-text sanitization
+- **Gateway/systemd**: Exit with sysexits 78 for supervised lock conflicts (cleaner process supervision)
+  Upstream: v2026.4.29
+
+---
+
+## 2026-04-30 — OpenClaw v2026.4.27 upstream sync
+
+### New Features
+
+- **DeepInfra: New bundled AI provider**
+  DeepInfra joins as a bundled provider plugin with model discovery and media generation capabilities. For B2B SDR pipelines, DeepInfra's GPU-cluster inference offers a cost-efficient path to running large models at scale — important for deployments processing thousands of daily conversations where provider API costs are a key unit-economics driver. Access open-weight models (Llama-3, Mistral) alongside proprietary options without additional infrastructure.
+  Upstream: v2026.4.27
+
+- **Memory search: Bounded top-K results & streaming support**
+  Lead memory retrieval now enforces a configurable maximum result count (bounded top-K), preventing oversized context injection from large lead databases that degraded response quality and inflated token costs. Memory loading also now streams results progressively rather than blocking, reducing perceived latency for agents with rich lead histories (100+ touchpoints) and allowing response generation to begin while memory loads in the background.
+  Upstream: v2026.4.27
+
+- **Codex Computer Use: Status/install commands with marketplace discovery**
+  Codex Computer Use gains `status` and `install` commands with ClawHub marketplace discovery and fail-closed MCP checks. For advanced SDR automation scenarios, this enables agent-driven tool installation and environment verification — useful for teams running OpenClaw on CI/CD pipelines or remote worker fleets where the full agent stack must be verified before routing production traffic.
+  Upstream: v2026.4.27
+
+- **Docker sandbox: GPU passthrough via `sandbox.docker.gpus`**
+  Docker-based deployments can now pass GPU resources into the sandbox container via the `sandbox.docker.gpus` configuration key. Enables on-premise LLM inference, TTS/STT models, and media generation to run directly within the OpenClaw sandbox — the key path to fully air-gapped AI SDR deployments for enterprises with strict data residency requirements.
+  Upstream: v2026.4.27
+
+- **Operator proxy: Managed outbound routing with strict validation**
+  Operator-managed outbound proxy routing with strict validation allows all agent traffic — API calls, webhook deliveries, channel messages — to route through a designated corporate proxy. With `strict: true`, any connection that cannot route through the proxy fails closed. Essential for regulated-market deployments (financial services, healthcare, government) where all outbound traffic must traverse a compliance inspection layer.
+  Upstream: v2026.4.27
+
+- **QQBot + Tencent Yuanbao: Expanded channel support**
+  Building on v2026.4.26's QQBot group chat debut, this release expands Tencent Yuanbao and QQBot channel support with additional group functionality and stability improvements. China-market B2B teams operating at scale on Tencent's platforms get a more robust and reliable channel layer.
+  Upstream: v2026.4.27
+
+### Fixed
+
+- Plugin startup now uses manifest-first metadata, reducing Gateway boot overhead for large plugin collections (20+ plugins)
+- Sensitive tokens and API keys now comprehensively redacted across all logging systems — no credential exposure in log aggregation platforms
+- Matrix approval scenarios: live metadata and chunked fallback improve E2EE channel reliability
+- Plugin SDK testing surfaces reorganized into focused, documented subpaths for improved developer experience
+  Upstream: v2026.4.27
+
+---
+
+## 2026-04-28 — OpenClaw v2026.4.26 upstream sync
+
+### New Features
+
+- **QQBot: Full group chat support**
+  QQBot gains comprehensive group chat capabilities: conversation history tracking across sessions, @-mention gating so the bot only activates when addressed, configurable activation modes (mention-only, keyword, always-on) per group, per-group ICP and persona configuration, and a FIFO message queue for high-volume environments. C2C streaming is also supported for one-on-one QQ conversations. For B2B export teams selling into China, this brings the AI SDR natively into Q-groups — the primary procurement communication channel for Chinese enterprise buyers.
+  Upstream: v2026.4.26
+
+- **Tencent Yuanbao: New external channel plugin**
+  A Tencent Yuanbao external channel plugin registers with WebSocket bot functionality, enabling AI SDR presence in China's enterprise AI assistant platform. As Yuanbao adoption grows among Chinese corporations for internal collaboration and vendor communication, this channel puts your agent at the AI-first workflow layer — before prospects open a browser to search for suppliers.
+  Upstream: v2026.4.26
+
+- **Control UI/Talk: Google Live browser realtime voice sessions**
+  A generic browser realtime transport contract enables Google Live browser Talk sessions with constrained ephemeral tokens and Gateway relay support for backend-only realtime voice plugins. No server-side WebRTC infrastructure required; the Gateway relays audio to your backend voice model while short-lived tokens prevent credential leakage. Complements the v2026.4.24 Google Meet plugin for full voice-AI coverage across calls and browsers.
+  Upstream: v2026.4.26
+
+- **CLI: `openclaw migrate` — scriptable enterprise migrations**
+  A new `openclaw migrate` command makes configuration and data migrations safe, auditable, and CI/CD-friendly: `--plan` previews every migration step and impact, `--dry-run --json` produces machine-readable output for approval workflows, `--backup` creates an automatic pre-migration state snapshot, and onboarding detection skips inapplicable migrations on fresh installs. Enterprise teams managing dev/staging/production environments now have a reliable, zero-downtime upgrade primitive.
+  Upstream: v2026.4.26
+
+- **Providers: Cerebras bundled plugin**
+  Cerebras joins as a bundled provider plugin with full onboarding flow, a static model catalog, and documentation. WSE-3-based inference delivers sub-second latency for large context windows — beneficial for high-volume SDR pipelines (1,000+ conversations/day) where response time directly affects conversation quality and lead qualification pace.
+  Upstream: v2026.4.26
+
+- **Memory: Asymmetric embedding endpoints & Ollama query prefixes**
+  OpenAI-compatible memory now supports separate endpoints and input-type configuration for query vs. document embeddings, enabling asymmetric embedding models (Cohere, Jina, Voyage) to use their full retrieval capabilities. Ollama memory adds model-specific retrieval query prefixes for instruction-tuned embedding models. Both improvements increase lead-to-memory match rates without new infrastructure or API keys.
+  Upstream: v2026.4.26
+
+- **Startup optimization: Deferred initialization & schema memoization**
+  QMD, CLI handlers, and plugin HTTP routes now initialize lazily at startup. Plugin schema compilation is memoized across the session. Enterprise deployments with 20+ plugins see meaningfully faster cold-start times.
+  Upstream: v2026.4.26
+
+### Fixed
+
+- WhatsApp proxy support — deploy behind corporate proxies in regulated-market enterprise environments
+- Discord model-picker persistence — channel model selection now survives agent restarts
+- Mattermost DM routing — direct messages now route correctly to the assigned agent
+- LSP process cleanup — language server processes no longer linger after agent shutdown, preventing memory leaks in long-running deployments
+- Plugin discovery with symlinks — monorepo-style symlinked plugin installs now discovered reliably
+- Windows path normalization — ESM loader path handling fixed for Windows-hosted deployments
+- Docker CA certificate bundle — automatic TLS CA installation in Docker images fixes verification failures in enterprise network environments
+- Matrix E2EE improvements — end-to-end encryption reliability in Matrix channel
+  Upstream: v2026.4.26
+
+---
+
+## 2026-04-27 — OpenClaw v2026.4.25 upstream sync
+
+### New Features
+
+- **Full TTS/Voice upgrade: `/tts latest`, session controls & 6 new providers**
+  Voice replies receive a comprehensive overhaul: `/tts latest` pins the most capable model for a provider, session-scoped auto-TTS toggles remember your preference across turns, and per-agent/per-account TTS persona overrides let different agents speak with different voices. Six new providers land: Azure Speech, Xiaomi, Local CLI, Inworld, Volcengine, and ElevenLabs v3 (with expanded voice library and improved prosody). For SDR teams running voice follow-up sequences or real-time call assistance, this means global-quality voice across every market.
+  Upstream: v2026.4.25
+
+- **Plugin registry: cold-persisted startup and install paths**
+  Plugin startup and install paths move to the cold persisted registry, eliminating broad manifest scans at every launch. Plugin update, repair, provider discovery, and install metadata are now fully deterministic. High-volume deployments that load dozens of plugins see meaningfully faster cold-start times.
+  Upstream: v2026.4.25
+
+- **OpenTelemetry observability: model calls, token usage, tool loops & process spans**
+  OTel coverage expands across model calls, token usage, tool loops, harness runs, and process execution — all with bounded low-cardinality attributes for efficient backend indexing. SDR pipeline SLAs (response time, tool-call depth, token spend) are now traceable in Grafana, Datadog, or any OTel-compatible backend without custom instrumentation.
+  Upstream: v2026.4.25
+
+- **Browser automation: iframe-aware snapshots & CDP readiness**
+  Role snapshots are now iframe-aware, capturing the full accessibility tree inside embedded frames — critical for CRM portals and SaaS lead tools that render key UI inside iframes. Chrome Discovery Protocol (CDP) readiness checks are adjusted for reliability, and tab URL safety prevents accidental navigation away from active automation targets.
+  Upstream: v2026.4.25
+
+- **Control UI: PWA and Web Push support**
+  The OpenClaw control interface can now be installed as a Progressive Web App with Web Push notifications, giving sales teams instant alerts for inbound lead messages without keeping a browser tab open.
+  Upstream: v2026.4.25
+
+- **Installation hardening across Windows, macOS, Linux & Docker**
+  Install and update flows receive cross-platform reliability improvements. Bundled plugin skill copy now runs consistently across OS environments, reducing first-run failures for teams self-hosting on diverse infrastructure.
+  Upstream: v2026.4.25
+
+### Fixed
+
+- 200+ bug fixes spanning TTS providers, plugin diagnostics, browser automation, channel integrations (Discord, Telegram), cron job scheduling, and media handling.
+  Upstream: v2026.4.25
+
+---
+
+## 2026-04-25 — OpenClaw v2026.4.24 upstream sync
+
+> **Breaking change for plugin authors:** The Pi-only `api.registerEmbeddedExtensionFactory(...)` compatibility path has been removed. Custom tool-result transforms must now use `api.registerAgentToolResultMiddleware(...)` with a `contracts.agentToolResultMiddleware` declaration that names the targeted harnesses. Update any custom plugins before upgrading.
+
+### New Features
+
+- **Google Meet bundled participant plugin**
+  OpenClaw ships a first-class Google Meet plugin: personal Google auth, explicit meeting URL joins, Chrome and Twilio realtime transports, `chrome-node` support for Parallels/VM environments, and `recover_current_tab`/`recover-tab` for re-attaching to open meetings. SDR teams can now have the AI present in every discovery call and demo — answering product questions, logging objections, and drafting follow-up notes while the conversation is live.
+  Upstream: v2026.4.24
+
+- **Realtime voice AI during live calls and meetings**
+  Talk, Voice Call, and Google Meet now share an `openclaw_agent_consult` realtime tool: the AI can pull in your full OpenClaw agent (tools, memory, CRM data) mid-call to answer a hard question without putting the prospect on hold. Gateway VoiceClaw adds a new Gemini Live WebSocket backend with owner-auth gating. Paired with `voicecall setup` and dry-run `voicecall smoke` commands for one-step provider readiness checks.
+  Upstream: v2026.4.24
+
+- **DeepSeek V4 Flash confirmed as onboarding default**
+  V4 Flash is now set as the default model for new users in the bundled catalog. For existing deployments, `deepseek-v4-flash` and `deepseek-v4-pro` remain available as explicit selections in `openclaw.json`. A previous thinking/replay bug where follow-up tool-call turns lost `reasoning_content` placeholders is fixed — V4 reasoning chains are now reliable across multi-turn SDR workflows.
+  Upstream: v2026.4.24
+
+- **Browser automation: coordinate clicks, longer action budgets, per-profile headless**
+  `openclaw browser click-coords` adds viewport-coordinate clicks for managed and existing-session automation. `browser.actionTimeoutMs` (default 60 s) prevents healthy long-running browser waits from failing at transport boundaries. `browser.profiles.<name>.headless` lets you run one profile headless for background research while keeping another visible for demos. `~` now expands correctly in `browser.executablePath`.
+  Upstream: v2026.4.24
+
+- **WeCom channel source pinned for Chinese-market reliability**
+  The official external WeCom channel source is now pinned to an exact npm release with dist-integrity checking, guarding against unpinned upstream drift. For B2B export teams relying on WeCom for enterprise customer conversations, this means predictable, auditable plugin versions across every deployment.
+  Upstream: v2026.4.24
+
+- **Gemini Live realtime voice provider**
+  New backend for Voice Call and Google Meet audio bridges: bidirectional audio, function-call support, and Gemini TTS enhancement with configurable `audioProfile` and `speakerName` for consistent voice branding across calls.
+  Upstream: v2026.4.24
+
+- **Google Meet conference records: artifacts, attendance, and history**
+  Meeting records now support artifact and attendance workflows — markdown/file output, latest-record lookup, and `--all-conference-records` for scanning meeting history. Post-call follow-up notes can be auto-generated and linked to the CRM record.
+  Upstream: v2026.4.24
+
+- **OpenRouter TTS provider**
+  New OpenRouter text-to-speech provider using an OpenAI-compatible `/audio/speech` endpoint with `OPENROUTER_API_KEY`. Expands voice note and telephony output options for SDR voice follow-up sequences.
+  Upstream: v2026.4.24
+
+- **OTEL observability: run, model-call, and tool spans**
+  Structured OpenTelemetry spans now cover runs, model calls, and tool executions — with timing, redacted error metadata, and opt-in content capture via `diagnostics.otel.captureContent`. Enables monitoring SDR pipeline SLAs in Grafana, Datadog, or any OTEL backend.
+  Upstream: v2026.4.24
+
+- **Context injection control for fully owned agent prompts**
+  `agents.defaults.contextInjection: "never"` disables workspace bootstrap file injection for agents that own their full prompt lifecycle. Useful for specialized sub-agents (qualifier, closer) that should not inherit the parent's workspace context files.
+  Upstream: v2026.4.24
+
+- **Bonjour LAN Gateway discovery as default-enabled bundled plugin**
+  LAN Gateway advertising moved to a default-enabled bundled plugin with its own `@homebridge/ciao` dependency. Users who don't need Bonjour can disable it without affecting wide-area discovery.
+  Upstream: v2026.4.24
+
+- **Plugin Compatibility Registry**
+  Central registry added for SDK/config/setup/runtime deprecation records with dated migration metadata. Easier to audit which plugins need updates before a platform upgrade.
+  Upstream: v2026.4.24
+
+### Fixed
+
+- **Critical: Heartbeat prompt injection into normal runs**
+  The heartbeat system was injecting its prompt into non-heartbeat runs, causing ordinary SDR replies to be suppressed as `HEARTBEAT_OK`. This is fixed. Heartbeat prompts, `HEARTBEAT_OK` acknowledgments, and runtime context turns are now hidden from visible history.
+  Upstream: v2026.4.24
+
+- **MCP session management: one-shot runtimes and idle eviction**
+  One-shot embedded bundled MCP runtimes now retire at run end. New `mcp.sessionIdleTtlMs` idle eviction cleans up leaked sessions. Startup skipped when runtime tool allowlist cannot reach bundle-MCP tools.
+  Upstream: v2026.4.24
+
+- **Browser profile startup: stale Chromium lock recovery and launch deduplication**
+  Stale `Singleton*` locks left by crashes are now cleared and retried. Concurrent lazy-start calls per profile are deduplicated, preventing duplicate Chrome launches and `PortInUseError`.
+  Upstream: v2026.4.24
+
+- **Scheduler delay overflow**
+  Oversized scheduler delays clamped through a shared safe-timer helper, preventing Node.js timeout cap overflows that could cause scheduled SDR tasks (cron jobs) to fire immediately or never.
+  Upstream: v2026.4.24
+
+- **WhatsApp: media delivery in tool-result replies, voice note transcription, group system prompts**
+  Media generated by tool-result replies is now delivered correctly. Voice notes are transcribed before agent dispatch while keeping transcripts out of command authorization. Setting `systemPrompt: ""` on a specific `groups.<id>` now correctly suppresses the wildcard prompt.
+  Upstream: v2026.4.24
+
+- **Telegram: polling persistence across restarts, model display names, forum-topic config**
+  Accepted update offsets are persisted before handlers complete, preventing replay on restart. Configured model display names now show in provider buttons. Generated schema metadata is included in packaged manifests for forum-topic/group config.
+  Upstream: v2026.4.24
+
+- **Slack: thread ordering, broadcast events, approval buttons, file downloads**
+  Multi-part block deliveries stay in the first reply thread when `replyToMode` is `first`. `thread_broadcast` events are now processed as user messages reaching agents. Native button clicks are resolved through Gateway preserving retry buttons. Non-image file downloads return local paths with file IDs.
+  Upstream: v2026.4.24
+
+- **MCP Gateway security: owner-only tool policy on 127.0.0.1/mcp**
+  `tools/list` and `tools/call` now enforce owner-only tool policy and run before-tool-call hooks, preventing non-owner bearer tokens from accessing owner-only tools.
+  Upstream: v2026.4.24
+
+- **DeepSeek V4 thinking replay on follow-up tool-call turns**
+  Missing `reasoning_content` placeholders added for replayed assistant tool-call turns when V4 thinking is enabled. Multi-turn SDR workflows using DeepSeek reasoning no longer lose context between turns.
+  Upstream: v2026.4.24
+
+- **Agent failover: abort signals and non-retryable 429 responses**
+  Embedded run abort signals are forwarded into provider streams with implicit watchdog caps. Non-retryable 429 responses no longer spin the retry loop.
+  Upstream: v2026.4.24
+
+- **Session store rotation: crash-safe sessions.json rewrite**
+  Oversized `sessions.json` is copied to a rotation backup before atomic rewrite, preventing crash-induced session mapping loss.
+  Upstream: v2026.4.24
+
+- **Matrix cross-signing: full identity trust required**
+  Full cross-signing identity trust is now required for self-device verification. `openclaw matrix verify self` added for CLI-initiated verification.
+  Upstream: v2026.4.24
+
+## 2026-04-24 — OpenClaw v2026.4.23 upstream sync
+
+### New Features
+
+- **OpenAI image generation + reference-image editing via Codex OAuth**
+  OpenAI provider now supports image generation and reference-image editing through Codex OAuth. SDR teams can generate on-brand product visuals and edit reference images directly within agent workflows — no separate image tool or API key juggling required.
+  Upstream: v2026.4.23
+
+- **OpenRouter image generation + reference-image editing**
+  Same image generation and reference-image editing capability extended to OpenRouter models, with provider-supported quality and output format hints. Unlocks a broader model roster for visual content in outreach sequences.
+  Upstream: v2026.4.23
+
+- **Subagent forked context for native sessions**
+  Agents can now launch subagents with forked context in native sessions, with prompt guidance and inline documentation. Enables multi-step SDR workflows where a qualifier subagent hands off context to a closer subagent — each with its own memory slice — without sharing a single conversation thread.
+  Upstream: v2026.4.23
+
+- **Per-call `timeoutMs` for image, video, music, and TTS generation**
+  Individual tool calls for generative media (image, video, music, TTS) can now carry an explicit `timeoutMs`. SDR pipelines that generate voice previews or product images mid-conversation can set tight SLA budgets per call without a global timeout affecting all tools.
+  Upstream: v2026.4.23
+
+- **Configurable local embedding context size (default 4096)**
+  Local embedding providers now accept a configurable context size, defaulting to 4096 tokens. Teams running OpenClaw on constrained VPS or edge hosts can reduce memory pressure without switching to a cloud embedding provider.
+  Upstream: v2026.4.23
+
+- **GPT-5.5 catalog metadata via Pi 0.70.0**
+  Dependencies updated to Pi 0.70.0, adding GPT-5.5 model catalog metadata. GPT-5.5 is now selectable as an agent model without manual catalog patching.
+  Upstream: v2026.4.23
+
+### Fixed
+
+- **89 distinct fixes across all major subsystems** including:
+  - Codex harness routing and context-engine assembly
+  - WhatsApp, Telegram, Discord, and Slack integration stability
+  - Transcript replay and media handling
+  - Security hardening across authentication, permissions, and data handling
+  - Plugin startup and dependency resolution
+  - Gateway session management and WebChat error surfacing
+  - Memory indexing and local embedding provider declaration
+  - Provider routing for OpenAI, OpenRouter, and Google services
+  Upstream: v2026.4.23
+
+## 2026-04-24 — DeepSeek V4 (Flash + Pro) catalog support
+
+### New Features
+
+- **DeepSeek V4 catalog entries**: `deepseek-v4-flash` and `deepseek-v4-pro` added to `providers.deepseek.models[]` in `openclaw.json`. Both reachable via OpenClaw's existing `openai-completions` passthrough — no SDK or plugin changes required. 1M-token context window, 8K/64K max output tokens respectively.
+- **Legacy aliases preserved**: `deepseek-chat` and `deepseek-reasoner` references continue to work via DeepSeek's own server-side aliases until **2026-07-24** (the DeepSeek-announced deprecation date). No forced migration; `agents.defaults.model` is intentionally not touched by this change.
+- **Thinking mode opt-in**: V4 models default to reasoning-on behavior. To get the old `deepseek-chat` fast path (non-thinking, pure `content` output), add `params: { "thinking": { "type": "disabled" } }` under `agents.defaults.models["deepseek/deepseek-v4-flash"]`. Set `{"type": "enabled"}` for Pro-grade reasoning on multi-turn tasks.
+- **Rollback**: single-file snapshot `openclaw.json.bak-2026-04-24` is created automatically by the deploy step; restore and `systemctl --user restart openclaw-gateway` to revert in under a minute.
+
+## 2026-04-23 — OpenClaw v2026.4.22 upstream sync
+
+### New Features
+
+- **Voice Call streaming transcription across Deepgram, ElevenLabs, and Mistral**
+  Incoming and outgoing voice calls can now be transcribed in real-time using any of three providers. For B2B SDR teams running voice follow-up alongside WhatsApp/Telegram, every call is automatically transcribed and available for AI summarization, CRM logging, and objection tracking — with no manual note-taking required.
+  Upstream: v2026.4.22
+
+- **Per-group and per-direct systemPrompt forwarding for WhatsApp**
+  Each WhatsApp group or direct conversation can now carry its own `systemPrompt` config, forwarded through the channel layer. SDR agents can maintain distinct personas for each prospect segment — different tone for cold leads vs. warm pipeline, different product focus for each vertical — without running separate instances.
+  Upstream: v2026.4.22
+
+- **Mailbox-style session filtering with labels and search**
+  Sessions can now be organized with labels and filtered via a search interface. Useful for managing high-volume SDR inboxes: label leads by stage (cold / warm / proposal-sent), filter by account, and surface active threads instantly.
+  Upstream: v2026.4.22
+
+- **xAI image generation, text-to-speech, and speech-to-text via grok-imagine-image**
+  xAI models (including `grok-imagine-image`) are now first-class providers for image generation, TTS, and STT. Adds a new vendor option for generating product visuals, voice demos, and audio content in SDR outreach flows.
+  Upstream: v2026.4.22
+
+- **Local embedded mode: terminal chats without Gateway**
+  A new embedded mode allows the agent to run inline in a terminal session without requiring a full Gateway deployment, while plugin approval gates are preserved. Useful for quick local testing of SDR agent configurations before production rollout.
+  Upstream: v2026.4.22
+
+- **Auto-install missing provider and channel plugins on first setup**
+  Required plugins are detected and installed automatically during initial configuration. Reduces setup friction for new deployments — no more manual plugin discovery after `install.sh`.
+  Upstream: v2026.4.22
+
+- **Browser-local personal identity for operators with avatar support**
+  Operators can configure a browser-local identity with avatar. Enables multiple SDR operators to maintain distinct visible identities within the same deployment.
+  Upstream: v2026.4.22
+
+- **Bundled Tencent Cloud provider plugin with TokenHub integration**
+  Tencent Cloud (Hunyuan models + COS storage) ships as a bundled plugin with TokenHub credential management. For businesses targeting the Chinese market, this enables a fully domestic AI stack alongside WeChat and other Tencent services.
+  Upstream: v2026.4.22
+
+- **Claude Opus 4.7 support via Amazon Bedrock Mantle**
+  The latest Claude Opus 4.7 model is now accessible through the Amazon Bedrock Mantle provider. Upgrade SDR conversation quality with the most capable Claude model for nuanced negotiation and complex objection handling.
+  Upstream: v2026.4.22
+
+- **Enhanced OpenAI Responses with native web_search tool**
+  OpenAI Responses API now automatically activates the native `web_search` tool. SDR agents can enrich prospect conversations with real-time market data, news, and company intelligence without additional tool configuration.
+  Upstream: v2026.4.22
+
+- **`/models add <provider> <modelId>` command for in-chat model registration**
+  New models can be registered directly from a chat session without editing config files. Useful for trying new model versions during live SDR deployments.
+  Upstream: v2026.4.22
+
+### Changed
+
+- **Reasoning models default to "medium" thinking level**
+  The implicit thinking level for reasoning models is raised from low to medium, producing more thorough responses for complex sales scenarios without requiring explicit configuration.
+  Upstream: v2026.4.22
+
+### Fixed
+
+- **Token usage now reported correctly for OpenAI-compatible local backends**
+  Local LLM setups (Ollama, LM Studio, etc.) now report accurate token counts, enabling reliable cost/usage tracking in mixed-model deployments.
+  Upstream: v2026.4.22
+
+- **Telegram forum topic thread caching stabilized**
+  Forum topic thread mappings are now cached with bounded expiry, preventing stale topic IDs from misdirecting messages in active Telegram forum groups.
+  Upstream: v2026.4.22
+
+## 2026-04-22 — OpenClaw v2026.4.21 upstream sync
+
+### Security (Upgrade Recommended)
+
+- **Owner-enforced commands require verified owner identity**
+  Owner-enforced commands now require verified owner identity before execution, closing a privilege-escalation path where non-owner operators could invoke owner-reserved commands under certain conditions. For multi-operator deployments (sales manager + SDR reps), operator-tier agents can no longer trigger owner-tier commands.
+  Upstream: v2026.4.21
+
+### Changed
+
+- **Image generation defaults to gpt-image-2 with 2K/4K resolution hints**
+  The bundled image-generation provider now uses `gpt-image-2` by default and advertises 2K and 4K size hints. For SDR agents generating product catalog images, quote visuals, or marketing assets, this is a direct quality upgrade with no prompt changes required.
+  Upstream: v2026.4.21
+
+### Fixes
+
+- **Plugin doctor repairs bundled runtime dependencies for packaged installs**
+  `openclaw doctor` can now repair bundled plugin runtime dependencies from doctor paths for packaged installs, resolving a class of silent plugin failures where missing post-install dependencies produced no clear error.
+  Upstream: v2026.4.21
+
+- **Slack thread routing restored for concurrent outbound sends**
+  Thread aliases are now preserved in runtime outbound Slack sends so programmatic messages land in the correct thread rather than the channel root or an unintended thread. Restores predictable behavior for Slack-based lead follow-up and CRM notification flows.
+  Upstream: v2026.4.21
+
+- **Browser automation: invalid accessibility refs rejected immediately**
+  Invalid accessibility refs are now rejected immediately rather than waiting for a full timeout, reducing latency for failing browser automation tasks such as web form submissions and lead enrichment scraping.
+  Upstream: v2026.4.21
+
+- **Image generation fallback: failed candidates logged at warn level**
+  Failed provider/model candidates during automatic image-generation fallback are now logged at warn level before the fallback fires, making fallback behavior visible in production logs.
+  Upstream: v2026.4.21
+
+- **node-domexception deprecation warning resolved**
+  The `node-domexception` alias is mirrored into root `package.json` overrides, silencing deprecation warnings in Node.js 18+ environments. No functional impact.
+  Upstream: v2026.4.21
+
+## 2026-04-21 — OpenClaw v2026.4.20 upstream sync
+
+### Security (Upgrade Recommended)
+
+- **Workspace `.env` hardened — all `OPENCLAW_*` keys blocked from untrusted files**
+  All `OPENCLAW_*` env keys are now blocked from untrusted workspace `.env` files, extending the runtime-control isolation from v2026.4.9. Also newly blocked: `MINIMAX_API_HOST` injection and interpreter-startup keys like `NODE_OPTIONS` for stdio MCP servers. If your deploy scripts inject these keys via workspace `.env`, move them to system environment or `openclaw.json` before upgrading.
+  Upstream: v2026.4.20
+
+- **Config mutation guard extended — AI cannot rewrite operator-trusted paths**
+  `config.patch` and `config.apply` tool calls from model-driven agents can no longer overwrite operator-trusted config paths. Closes a privilege-escalation vector where a compromised agent could modify gateway security settings mid-session.
+  Upstream: v2026.4.20
+
+- **Non-admin paired-device sessions scoped to own pairing actions only**
+  Paired devices without admin rights can no longer approve or reject other devices' pairing requests. Relevant for multi-operator deployments where paired mobile devices share a gateway.
+  Upstream: v2026.4.20
+
+- **WebSocket broadcasts require `operator.read` — unknown events scoped by default**
+  Chat, agent, and tool-result WebSocket event frames now require `operator.read` scope. Unknown event types are scoped by default rather than broadcast. Hardens gateway against read-access escalation via WebSocket.
+  Upstream: v2026.4.20
+
+- **QQBot SSRF guard — direct-upload media URLs validated**
+  SSRF protection added to QQBot's `uploadC2CMedia` and `uploadGroupMedia` direct-upload paths. If you route media through internal hosts via QQBot, ensure those hosts are in your SSRF allowlist.
+  Upstream: v2026.4.20
+
+### Changed (Upgrade Recommended)
+
+- **Default system prompts strengthened — better SDR pipeline completion**
+  OpenClaw's built-in system prompts now include explicit completion bias, live-state verification checks, and weak-result recovery mechanisms. For B2B SDR agents, this means the agent is less likely to stop mid-pipeline on ambiguous responses, self-verifies before marking a lead stage complete, and retries gracefully when a tool call returns a weak result.
+  Upstream: v2026.4.20
+
+- **Session entry cap and age prune enforced by default**
+  Session stores now enforce the built-in entry cap and prune oversized stores at load time. Prevents out-of-memory conditions on long-running SDR deployments with hundreds of active conversations. No config change required — defaults are safe. To customize: `session.maxEntries` and `session.maxAgeMs` in `openclaw.json`.
+  Upstream: v2026.4.20
+
+- **Auto-reply policy scoped per conversation type — direct chats vs groups**
+  The `NO_REPLY` policy is now applied per conversation type: direct chats receive a helpful rewritten reply while group channels stay quiet. For SDR agents, this means the agent correctly handles 1:1 leads on WhatsApp and Telegram while staying silent in broadcast or staff group chats without extra config.
+  Upstream: v2026.4.20
+
+- **Cron state split — `jobs-state.json` separate from `jobs.json`**
+  Runtime cron execution state is now stored in `jobs-state.json` so `jobs.json` remains stable for git-tracked definitions. If you version-control your cron job definitions, this eliminates noisy state changes in git diffs. Migrated automatically on first run.
+  Upstream: v2026.4.20
+
+### Fixes
+
+- **Active memory degrades gracefully on recall failure**
+  If memory recall fails (e.g., vector store unavailable, index corrupt), the agent now logs a warning and continues the turn instead of failing. Critical for production SDR deployments that process inbound leads without manual supervision.
+  Upstream: v2026.4.20
+
+- **Web search plugin API keys now resolve correctly**
+  Plugin-scoped `SecretRef` API keys for Exa, Firecrawl, Gemini, Kimi, Perplexity, Tavily, and Grok are now correctly resolved. If your lead-research or enrichment workflow uses any of these search plugins and keys are stored as `SecretRef`, this fix is required.
+  Upstream: v2026.4.20
+
+- **Telegram polling watchdog raised from 90s to 120s**
+  The Telegram polling stall threshold is raised from 90 s to 120 s (configurable via `channels.telegram.pollingStallThresholdMs`). Reduces false-positive reconnects under high-message-volume SDR campaigns and slow network conditions.
+  Upstream: v2026.4.20
+
+- **Telegram offset confirmation timeout — prevents zombie socket hangs**
+  Persisted-offset confirmation now has a client-side timeout, preventing Telegram polling from hanging indefinitely on dropped connections. Affects long-running SDR campaigns on high-volume Telegram channels.
+  Upstream: v2026.4.20
+
+- **Model auto-failover session overrides cleared before each turn**
+  Transient auto-failover provider/model overrides are now cleared before each turn, so the primary model is retried immediately on the next message rather than sticking to the failover. Ensures your configured primary model (e.g., Claude Opus 4.7) is used for lead qualification, not a fallback.
+  Upstream: v2026.4.20
+
+- **`/new` and `/reset` clear auto-sourced overrides, preserve explicit selections**
+  Starting a new conversation or resetting now clears auto-sourced model, provider, and auth-profile overrides while preserving any model you've explicitly set. Prevents stale failover state from carrying into fresh SDR sessions.
+  Upstream: v2026.4.20
+
+- **Memory dreaming: normalized timestamps and deduplicated session keys**
+  Memory sweep timestamps are normalized and narrative session keys are deduplicated via hashing, preventing memory leaks in long-running deployments. Relevant for SDR agents using the active-memory plugin across hundreds of concurrent lead conversations.
+  Upstream: v2026.4.20
+
+- **Gateway doctor surfaces pending pairing, scope-upgrade, and stale device-token issues**
+  `openclaw doctor` now detects and surfaces pending device pairing requests, scope-upgrade approval drift, and stale device-token problems. Reduces silent gateway auth failures in multi-operator team deployments.
+  Upstream: v2026.4.20
+
+- **Slack `SecretRef` outbound reply fix — unresolved secret error resolved**
+  Outbound Slack replies were failing with "unresolved SecretRef" for file or exec secret sources. Fixed — Slack channel outbound messaging is restored.
+  Upstream: v2026.4.20
+
+- **Gateway cost usage cache bounded with FIFO eviction**
+  The cost usage cache now has FIFO eviction to prevent unbounded memory growth. Relevant for high-volume SDR deployments processing many sessions over long uptimes.
+  Upstream: v2026.4.20
+
+### Documentation
+
+- Updated `workspace/TOOLS.md`: v2026.4.20 upgrade banner, session entry cap note, Telegram polling note
+- Updated `deploy/UPGRADE.md`: v2026.4.20 known-issues table
+
+## 2026-04-16 — OpenClaw v2026.4.15 upstream sync
+
+### Changed (Upgrade Recommended)
+
+- **Default model upgraded to Claude Opus 4.7**
+  OpenClaw's default Anthropic model selections, `opus` aliases, and Claude CLI defaults now point to Claude Opus 4.7. If your `openclaw.json` uses `model: opus` or any unversioned alias, it now resolves to Opus 4.7 automatically — no config change required. B2B SDR impact: Opus 4.7 delivers improved multi-step reasoning, stronger objection handling chains, and better long-context coherence across complex pipeline negotiations.
+  Upstream: v2026.4.15
+
+### New Features
+
+- **Google Gemini text-to-speech** *(WATCH — new voice channel capability)*
+  The bundled `google` plugin now includes Gemini TTS: voice selection, WAV reply output, and PCM telephony output. Relevant for deployments adding voice channels (IVR, WhatsApp voice notes). Not required for standard B2B SDR text workflows.
+  Upstream: v2026.4.15
+
+### Fixes
+
+- **Skill sort order stabilized — reduces prompt-cache misses**
+  `available_skills` entries are now sorted alphabetically after all sources merge. Prevents prompt-cache prefix drift when `skills.load.extraDirs` order changes, reducing cold-start API cost for custom-skill deployments.
+  Upstream: v2026.4.15
+
+- **Memory context budget trimmed — lighter long-session context**
+  Default startup and skills prompt budgets are reduced; `memory_get` excerpts are now capped with explicit continuation metadata. Long SDR sessions (30+ turns) see lighter context payloads without losing memory continuity. Reduces per-conversation API cost on high-volume pipelines.
+  Upstream: v2026.4.15
+
+### Documentation
+
+- Updated `workspace/TOOLS.md`: Opus 4.7 default noted in provider table, v2026.4.15 upgrade banner
+
+## 2026-04-14 — OpenClaw v2026.4.14 upstream sync
+
+### Security (Upgrade Recommended)
+
+- **UI Markdown renderer: marked.js → markdown-it (XSS fix)**
+  The control UI's Markdown renderer has been replaced with markdown-it, eliminating a class of XSS vulnerabilities triggerable by agent-generated or user-supplied content rendered in the web UI. Any deployment with the UI reachable by untrusted users should treat this as a required upgrade.
+  Upstream: v2026.4.14
+
+- **Browser SSRF policy fully enforced**
+  Browser navigation, screenshot, and snapshot requests now enforce the outbound SSRF policy, preventing a sandboxed browser tool from probing internal network addresses.
+  Upstream: v2026.4.14
+
+- **Attachment path canonicalization**
+  Attachment paths are canonicalized before processing, blocking a path-traversal vector in file-handling workflows.
+  Upstream: v2026.4.14
+
+- **Gateway tool flag restrictions hardened**
+  Tool flag restrictions in the service gateway are now enforced for security settings.
+  Upstream: v2026.4.14
+
+- **Slack interaction allowlist enforcement fixed**
+  Slack interaction allowlist is now correctly enforced.
+  Upstream: v2026.4.14
+
+### New Features
+
+- **GPT-5.4-Pro forward compatibility** *(RELEVANT — OpenAI users)*
+  OpenClaw ships pricing, token limits, and visibility metadata for `gpt-5.4-pro` ahead of OpenAI's upstream catalog update (PR #66453). Teams can set `models.providers.openai.model: gpt-5.4-pro` immediately — routing, cost accounting, and context-limit guards are already wired in.
+  B2B SDR relevance: gpt-5.4-pro's expanded reasoning translates to better objection handling and more coherent multi-step follow-ups across long sales threads.
+  Upstream: v2026.4.14
+
+- **Telegram forum topic names in agent context** *(RELEVANT — Telegram outreach)*
+  OpenClaw learns topic names from Telegram forum service messages and surfaces them as human-readable context in agent replies and plugin hook metadata (PR #65973). Previously only a numeric topic ID was available. Templates can now reference `{{telegram.topic_name}}` for stage-aware routing and persona selection.
+  B2B SDR relevance: export teams using forum-structured Telegram groups (one topic per deal stage or territory) can now apply stage-appropriate messaging without manual routing rules.
+  Upstream: v2026.4.14
+
+### Channel Improvements
+
+- **WhatsApp: media encryption edge cases fixed**
+  Media decryption now handles edge cases in encryption key derivation, fixing silent drops of inbound voice notes, images, and documents. Critical for WhatsApp-heavy markets (Brazil, India, Southeast Asia).
+  Upstream: v2026.4.14
+
+- **Microsoft Teams: SSO allowlist checks enforced**
+  Teams SSO flows now correctly enforce the sender allowlist, blocking unallowlisted OAuth identities from triggering agent processing. Relevant for enterprise Teams deployments restricted to specific internal or partner identities.
+  Upstream: v2026.4.14
+
+- **Feishu: sender allowlist canonicalization**
+  Feishu sender allowlists are now canonicalized consistently, fixing an edge case where differently-formatted IDs of the same user could bypass or double-trigger the allowlist. Relevant for outreach into Chinese enterprise accounts.
+  Upstream: v2026.4.14
+
+- **Telegram: topic name persistence + read-only status bypass fixed**
+  Topic names persist correctly across restarts; read-only Telegram status commands now correctly bypass the standard message processing pipeline.
+  Upstream: v2026.4.14
+
+- **TTS: voice note reply persistence fixed**
+  Voice note replies generated by the TTS module now persist correctly after send, closing a gap in conversation history that disrupted follow-up logic.
+  Upstream: v2026.4.14
+
+- **Discord: status command responses fixed**
+  The `!status` command in Discord now responds correctly in all gateway configurations.
+  Upstream: v2026.4.14
+
+- **Telegram: media download proxy support**
+  Telegram media downloads now route through the configured outbound proxy, fixing connectivity in restricted-network deployments.
+  Upstream: v2026.4.14
+
+### Memory & Session
+
+- **Active memory: prompt placement corrected + logging improved**
+  Memory context is now injected at the correct position in the prompt template, improving recall accuracy. Retrieval logging improved for observability.
+  Upstream: v2026.4.14
+
+- **Session memory: workspace scoping fixed**
+  Session memory is now correctly scoped to the workspace, preventing cross-workspace memory bleed in multi-tenant deployments.
+  Upstream: v2026.4.14
+
+- **Session memory: slug generation timeouts fixed**
+  Eliminates a failure mode where memory slugs were not created for long conversation subjects.
+  Upstream: v2026.4.14
+
+### Infrastructure
+
+- **Cron scheduler: error backoff + recovery**
+  The cron scheduler now applies exponential backoff on errors and recovers cleanly from transient failures. Previously, a single error could stall the entire scheduled-task queue, blocking timed follow-up sequences.
+  Upstream: v2026.4.14
+
+- **Ollama: timeout inheritance for streaming + accurate usage reporting**
+  Timeout configuration is now correctly inherited for streaming requests; token usage counts are accurate in streaming mode. Relevant for local Ollama deployments used for cost or data-residency reasons.
+  Upstream: v2026.4.14
+
+- **Subagent registry distribution in npm builds**
+  The subagent registry is now correctly included in npm package builds.
+  Upstream: v2026.4.14
+
+- **GitHub Copilot reasoning support added**
+  Upstream: v2026.4.14
+
+---
+
+## 2026-04-13 — OpenClaw v2026.4.12 upstream sync
+
+### Security (Upgrade Recommended)
+
+- **Empty approver list authorization bypass fixed**
+  Authorization checks now require at least one configured approver; a check that silently passed on an empty approver list has been patched.
+  Upstream: v2026.4.12
+
+- **busybox/toybox removed from safe interpreter bins**
+  Both `busybox` and `toybox` are removed from the safe binary allowlist. Sandboxed exec sessions that relied on these for shell escapes are now correctly blocked.
+  Upstream: v2026.4.12
+
+- **Shell-wrapper detection broadened; env-argv injection blocked**
+  Shell wrappers are detected more broadly; `env`-based argv injection into exec sessions is explicitly denied.
+  Upstream: v2026.4.12
+
+### New Features
+
+- **LM Studio provider — self-hosted models with runtime discovery** *(RELEVANT — data-residency)*
+  A bundled LM Studio provider enables fully local, self-hosted OpenAI-compatible models with guided setup, runtime model discovery, stream preloading, and memory-search embeddings. Configure via `models.providers.lm-studio.*`.
+  B2B SDR relevance: teams with data-residency requirements (EU manufacturing, government export, China mainland) can now run the SDR agent entirely on-premise — no cloud API calls required for conversation handling or lead context recall.
+  Upstream: v2026.4.12
+
+- **Active Memory plugin — stabilized** *(high SDR relevance)*
+  The Active Memory plugin introduced in v2026.4.10 is now stabilized with improved QMD recall defaults, better telemetry, and Unicode support for wiki slugs and contradiction clustering. See v2026.4.10 entry for full details.
+  Upstream: v2026.4.12
+
+- **macOS/Talk — local MLX speech provider** *(Experimental)*
+  Experimental local MLX speech provider for Talk Mode on Apple Silicon with explicit provider selection, local utterance playback, interruption handling, and system-voice fallback.
+  Upstream: v2026.4.12
+
+### Channel Improvements
+
+- **WhatsApp: media fallback + drop-proof orphaned messages**
+  When `mediaUrl` is empty but `mediaUrls` is populated, OpenClaw now falls back to the first entry. Orphaned messages sent while the previous message was being processed are now carried forward into the next processing cycle instead of being silently dropped.
+  B2B SDR relevance: product catalog attachments and voice messages sent mid-sequence no longer go missing on WhatsApp.
+  Upstream: v2026.4.12
+
+- **Telegram: approval callbacks deadlock fixed**
+  Approval button callbacks now route to a dedicated processing lane, preventing deadlocks during high-volume SDR sequences.
+  Upstream: v2026.4.12
+
+- **Discord: stale heartbeat timers cleared**
+  Stale heartbeat timers are now cleared before reconnect, preventing process crashes in long-running gateway deployments.
+  Upstream: v2026.4.12
+
+- **Matrix: mention gating + display name acceptance**
+  `requireMention` now correctly gates messages while accepting visible display names from non-OpenClaw clients.
+  Upstream: v2026.4.12
+
+### Fixed
+
+- **Dreaming reliability**
+  Waiting-entry recency ordering stabilized; transient narrative cleanup hardened with retry logic; own narrative transcript re-ingestion fixed.
+  Upstream: v2026.4.12
+
+- **WebSocket keepalive tick broadcast**
+  Tick broadcasts are no longer marked as discardable, preventing client disconnects during long agent runs on slow/backpressured connections.
+  Upstream: v2026.4.12
+
+---
+
+## 2026-04-12 — OpenClaw v2026.4.11 upstream sync
+
+### New Features
+
+- **Microsoft Teams — delegated OAuth + reactions** *(RELEVANT)*
+  Teams now supports delegated OAuth for sending reactions and messages on behalf of the assigned rep's identity. Adds reaction listing, Graph pagination, and reaction support across DMs and channels.
+  B2B SDR relevance: the agent can now react/pin key lead-update messages in Teams channels and send as the rep, not as the generic bot identity.
+  Upstream: v2026.4.11
+
+- **Plugin manifest activation + setup descriptors**
+  Plugin manifests declare `activation` and `setup` descriptors so plugins self-describe required auth steps, pairing flows, and config fields. Removes the need for core special-cases per plugin, simplifying third-party SDR plugin deployment.
+  Upstream: v2026.4.11
+
+- **Dreaming/memory-wiki: ChatGPT import ingestion**
+  Existing ChatGPT conversation exports can be ingested into the memory wiki. New "Imported Insights" and "Memory Palace" diary subtabs allow direct inspection of imported source chats, compiled wiki pages, and full source pages.
+  B2B SDR relevance: historical sales conversations from ChatGPT can be migrated into the agent's memory without manual re-entry.
+  Upstream: v2026.4.11
+
+- **Control UI: rich webchat bubbles + `[embed ...]` tag**
+  Assistant media, reply, and voice directives render as structured chat bubbles. New `[embed ...]` rich output tag available with configurable external URL gating.
+  Upstream: v2026.4.11
+
+### Channel Improvements
+
+- **Feishu: document comment sessions** *(RELEVANT — China market)*
+  Document comment sessions now include richer context parsing, comment reactions, and typing feedback — document-thread conversations behave like live chat.
+  B2B SDR relevance: sales proposals shared as Feishu documents can now have inline SDR agent discussion threads, supporting common China B2B sales workflows.
+  Upstream: v2026.4.11
+
+- **Microsoft Teams: video generation + typed provider options**
+  Video generation tool adds URL-only asset delivery, typed `providerOptions`, reference audio inputs, per-asset role hints, and adaptive aspect-ratio support. Seedance 2.0 references added to the bundled fal provider.
+  Upstream: v2026.4.11
+
+### Fixed
+
+- **Ollama: model metadata caching**
+  `/api/show` context-window and capability metadata is now cached during model discovery, eliminating repeated API calls on picker refreshes. Cache invalidates on digest changes.
+  Upstream: v2026.4.11
+
+- **QA/parity: GPT-5.4 vs Opus 4.6 agentic parity report**
+  New parity gate with shared scenario coverage checks, stricter evidence heuristics, and skipped-scenario accounting for maintainer review.
+  Upstream: v2026.4.11
+
+---
+
+## 2026-04-11 — OpenClaw v2026.4.10 upstream sync
+
+### New Features
+
+- **Active Memory Plugin** *(Opt-in — high SDR relevance)*
+  New optional plugin that runs a dedicated memory sub-agent right before each main reply. It automatically surfaces relevant preferences, past context, and lead details from the agent's memory store without requiring users to manually invoke memory commands. Supports configurable message/recent/full-context modes, live `/verbose` inspection, and opt-in transcript persistence for debugging. Docs: https://docs.openclaw.ai/concepts/active-memory
+  B2B SDR relevance: eliminates the need to manually say "remember this" or "search memory" — the agent now proactively pulls in lead history, deal stage, and communication preferences before every reply, dramatically improving continuity across long-running sales threads.
+  Upstream: v2026.4.10
+
+- **Codex / GPT-5 family — bundled Codex provider**
+  A new bundled `codex` provider handles all `codex/gpt-*` model routes with Codex-managed auth, native thread management, model discovery, and automatic conversation compaction. The existing `openai/gpt-*` path continues to use the standard OpenAI provider. If you were routing GPT-5 traffic through the `openai` provider manually, switch model IDs to `codex/gpt-5` for optimal performance and managed auth.
+  Upstream: v2026.4.10
+
+- **Microsoft Teams — message actions**
+  Five new Teams actions are now available: `pin`, `unpin`, `read` (mark as read), `react` (add emoji reaction), and `listReactions`. Enables richer bi-directional engagement in Teams-based sales workflows.
+  B2B SDR relevance: pin confirmed order summaries or SLA commitments directly in Teams threads; use reactions to acknowledge messages without breaking conversation flow.
+  Upstream: v2026.4.10
+
+- **CLI: `openclaw exec-policy` command**
+  New local command for managing exec approval policy. Subcommands: `show` (view current policy), `preset` (apply a named policy preset), `set` (granular key-value overrides). Includes rollback safety and sync conflict detection to prevent policy drift between config and the local approvals file.
+  Upstream: v2026.4.10
+
+- **Gateway: `commands.list` RPC**
+  Remote gateway clients can now discover all runtime-native, text, skill, and plugin commands via a single RPC call. Returns surface-aware names and serialized argument metadata. Useful for building external dashboards or automation that needs to enumerate available agent capabilities dynamically.
+  Upstream: v2026.4.10
+
+- **Per-provider private network opt-in**
+  Add `models.providers.*.request.allowPrivateNetwork: true` to trusted self-hosted OpenAI-compatible endpoints. Keeps private-network access scoped to model request surfaces only — does not affect browser or fetch tools.
+  Upstream: v2026.4.10
+
+- **macOS/Talk — local MLX speech provider** *(Experimental)*
+  Experimental local MLX speech backend for Talk Mode on Apple Silicon. Requires explicit provider selection. Falls back to system voices if MLX is unavailable.
+  Upstream: v2026.4.10
+
+### Fixed
+
+- **Security: 126 fixes** covering security boundary enforcement across multiple channels, browser/sandbox hardening, OpenAI/Codex provider stability, WhatsApp media handling, Microsoft Teams restoration, gateway stability, conversation binding normalization, iMessage self-chat distinction, Matrix account scoping, Telegram security validation, agent timeout extensions, Windows execution settling, cron scheduling corrections, session model preservation, and numerous other platform and core system refinements.
+  Upstream: v2026.4.10
+
+- **Docs i18n: translation pipeline hardened**
+  Chunked raw doc translation, rejects truncated tagged outputs, avoids ambiguous body-only wrapper unwrapping, and recovers from terminated translation sessions without changing the default model path.
+  Upstream: v2026.4.10
+
+---
+
+## 2026-04-09 — OpenClaw v2026.4.9 upstream sync
+
+### Security (Critical — Upgrade Recommended)
+
+- **Workspace `.env` runtime-control env vars blocked** *(BREAKING)*
+  Runtime-control variables, browser-control override flags, and skip-server env vars in untrusted workspace `.env` files are now rejected at startup. If your deployment uses `.env` to override OpenClaw runtime behavior (e.g. `OPENCLAW_GATEWAY_PORT`, `OPENCLAW_SKIP_*`, `OPENCLAW_BROWSER_*`), those overrides are silently ignored in v2026.4.9. Move them into `openclaw.json` under the appropriate config keys or set them as real system environment variables before the daemon starts.
+  Upstream: v2026.4.9
+
+- **SSRF bypass via interaction-driven navigation fixed**
+  Blocked-destination safety checks are now re-run after click, evaluate, and hook-triggered navigations in the browser tool. Previously, an agent or adversarial page could bypass the SSRF quarantine by triggering a main-frame navigation through a simulated click.
+  Upstream: v2026.4.9
+
+- **Remote node exec events marked untrusted**
+  `exec.started`, `exec.finished`, and `exec.denied` summaries from remote nodes are now flagged as untrusted system events. Command/output/reason text from remote nodes is sanitized, preventing injection of trusted-System content via crafted exec summaries.
+  Upstream: v2026.4.9
+
+- **Plugin onboarding auth-choice collision prevention**
+  Untrusted workspace plugins can no longer register provider auth-choice IDs that collide with bundled provider IDs during non-interactive onboarding.
+  Upstream: v2026.4.9
+
+- **`basic-ftp` CRLF injection patched**
+  Forced `basic-ftp` to `5.2.1` which includes the upstream CRLF command-injection fix. Also bumped Hono and `@hono/node-server` in production dependency paths.
+  Upstream: v2026.4.9
+
+### New Features
+
+- **Memory & Dreaming — REM backfill lane**
+  New `rem-harness --path` flag enables historical daily-note replay into the Dreams stack without a second memory stack. Includes live short-term promotion so old diary entries can be back-filled into the agent's grounded long-term memory.
+  B2B SDR relevance: long-running SDR agents accumulating months of interaction history can now backfill older notes into Dreams for persistent lead context without restarting from scratch.
+  Upstream: v2026.4.9
+
+- **Structured diary view**
+  Diary now shows a timeline with backfill/reset controls, traceable dreaming summaries, and a grounded Scene lane with promotion hints. Useful for auditing what your agent "remembers" about a lead over time.
+  Upstream: v2026.4.9
+
+- **Provider auth aliases (`providerAuthAliases`)**
+  Provider manifests now support `providerAuthAliases`, enabling provider variants to share environment variables, auth profiles, config-backed authentication, and API-key onboarding — without core-specific integration per variant. Reduces duplication when configuring multiple OpenAI-compatible or Anthropic-compatible endpoints.
+  Upstream: v2026.4.9
+
+### Fixed
+
+#### Session & Routing
+- **Telegram/Discord route preservation on multi-session announce**
+  `sessions_send` follow-up messages no longer hijack delivery from established Telegram or Discord external routes. Previously, inter-session announce traffic could re-route a reply that should have gone to a customer's Telegram thread back through an internal channel.
+  Upstream: v2026.4.9
+
+- **`/reset` and `/new` clear auto-fallback model overrides**
+  Auto-pinned model overrides from fallback chains are cleared on `/reset` and `/new`. Explicit user model selections are preserved. Legacy sessions created before override-source tracking are also retroactively handled.
+  Upstream: v2026.4.9
+
+- **Session history guard on fast session switches**
+  Stale session-history reloads during rapid session switches are now guarded, preventing a mismatch between the selected session and the rendered transcript.
+  Upstream: v2026.4.9
+
+#### Channels
+- **Slack: bearer auth preserved across same-origin `files.slack.com` redirects**
+  `url_private_download` image attachments now load correctly. The fix preserves bearer auth on same-origin Slack CDN redirects while still stripping it on cross-origin hops (security behavior maintained).
+  Upstream: v2026.4.9
+
+- **Slack: ACP block replies treated as delivered output**
+  Slack ACP block replies no longer trigger a second fallback-text send. Previously, the agent would send duplicate plain-text replies after Slack already rendered the block.
+  Upstream: v2026.4.9
+
+- **Slack: partial-streaming final-answer suppression fixed**
+  Stale preview text from a failed stream finalization no longer suppresses the final answer in Slack channels.
+  Upstream: v2026.4.9
+
+- **Chat control token leakage suppressed**
+  Internal `ANNOUNCE_SKIP` / `REPLY_SKIP` tokens no longer appear in user-facing Slack, Telegram, or Discord messages, either live or in history sanitization.
+  Upstream: v2026.4.9
+
+- **Auto-reply: `NO_REPLY` sentinel stripping**
+  Leading `NO_REPLY` tokens are stripped before reply normalization and ACP-visible streaming. Substantive `NO_REPLY …` text (e.g. where the phrase appears in a customer message) is preserved.
+  Upstream: v2026.4.9
+
+- **Matrix: wait for sync readiness before startup success**
+  The gateway now waits for Matrix sync to be ready before marking startup as complete. Matrix background handler failures are contained; fatal Matrix sync stops route through channel-level restart handling instead of crashing the gateway.
+  Upstream: v2026.4.9
+
+- **Matrix doctor: legacy DM policy migration**
+  `openclaw doctor --fix` migrates `channels.matrix.dm.policy: "trusted"` to compatible `allowlist`-based DM policies, preserving explicit `allowFrom` boundaries. Empty legacy configs default to `pairing`.
+  Upstream: v2026.4.9
+
+#### Providers & Models
+- **OpenAI: reasoning effort defaults to `high`**
+  When no `reasoning_effort` is specified, OpenAI Responses, WebSocket, and compatible completions transports now default to `high`. Per-run explicit reasoning levels are still honored. Monitor token usage if you rely on the previous behavior (which was no reasoning effort sent).
+  Upstream: v2026.4.9
+
+- **Ollama: thinking output when `/think` is active**
+  Ollama models using the native `api: "ollama"` path now display thinking output when `/think` is set to a non-off level. Useful for local model deployments with reasoning models.
+  Upstream: v2026.4.9
+
+- **OpenRouter: provider-qualified model refs preserved**
+  Model IDs containing slashes (e.g. `anthropic/claude-3-5-sonnet`) are now submitted with the `openrouter/` prefix intact so they remain allowlist-compatible.
+  Upstream: v2026.4.9
+
+- **Z.ai error classification**
+  Z.ai vendor codes `1311` (billing) and `1113` (auth) — including long wrapped `1311` payloads — are now correctly classified instead of falling through to generic failover handling.
+  Upstream: v2026.4.9
+
+#### Agent Runtime
+- **Agent timeout inherits `agents.defaults.timeoutSeconds`**
+  LLM idle timeout now inherits `agents.defaults.timeoutSeconds` when configured. The unconfigured idle watchdog is disabled for cron runs. Idle-timeout errors now point at `agents.defaults.llm.idleTimeoutSeconds` for accurate config guidance. This matters for long-running SDR cron agents that were hitting spurious idle timeouts.
+  Upstream: v2026.4.9
+
+- **Reply preflight uses active runtime snapshot**
+  Queued reply runs now use the active runtime snapshot; `SecretRef`s are resolved before preflight helpers run. Gateway OAuth reauth failures are surfaced to users with exact `openclaw doctor` reauth commands.
+  Upstream: v2026.4.9
+
+---
+
+## 2026-04-08 — OpenClaw v2026.4.8 upstream sync
+
+### Security (Critical — Upgrade Recommended)
+
+- **Cross-origin redirect secret leakage fixed**
+  307/308 redirects now drop request bodies and headers by default. Previously, auth tokens and API keys could leak to redirect targets via SSRF-guarded fetches. No config change required — protection is automatic after upgrade.
+  Upstream: v2026.4.8
+
+- **`/allowlist` commands require owner on channel resolution**
+  In v2026.4.7 the owner check was enforced before channel resolution; now it's enforced before *and* during. Closes a narrow window where allowlist mutations could bypass the guard during fast concurrent requests.
+  Upstream: v2026.4.8
+
+- **Base64 byte limits before decode**
+  Teams, Signal, QQ, and image-tool payloads now enforce byte-size caps before base64 decoding, preventing memory exhaustion from oversized payloads.
+  Upstream: v2026.4.8
+
+- **Untrusted event marking**
+  Background summaries, ACP relay payloads, and wake-hook events are now tagged as untrusted system events and excluded from elevated execution contexts.
+  Upstream: v2026.4.8
+
+- **Windows cmd.exe approval gating strengthened**
+  Env-assignment carriers inside cmd.exe wrappers are now caught by the approval gate even when ambient execution defaults are elevated.
+  Upstream: v2026.4.8
+
+### Fixed
+
+#### Channels
+- **Telegram/Setup**: Module import failures on packaged installs resolved — setup contracts load from bundled sidecars instead of missing dist files. Multi-account setups no longer break after `npm install -g`.
+- **Slack**: WebSocket Socket Mode connections now respect HTTP(S) proxy settings and `NO_PROXY` exclusions — required for corporate proxy deployments.
+- **Slack/Actions**: Bot token resolution fixed for `SecretRef`-backed tokens after config re-reads (e.g., `openclaw gateway restart`).
+- **Discord/Events**: Cover image accepts URLs or local PNG/JPG/GIF paths with proper validation.
+- **Matrix**: Multi-paragraph and loose-list rendering repaired — content no longer detaches from list items in formatted messages.
+- **Telegram/Doctor**: Access-control fallback during multi-account normalization restored; inherited allowlists are no longer lost after `openclaw doctor`.
+- **BlueBubbles**: Explicit private-network opt-out now respected for loopback and private server URLs.
+
+#### Agent Runtime
+- **Claude thinking blocks preserved** for Opus 4.5+, Sonnet 4.5+, and Claude 4-family models. Interleaved thinking was being stripped before forwarding — this caused reasoning regressions on complex SDR tasks with those models.
+- **Context overflow recovery** now combines oversized and aggregate tool-result recovery in a single pass with a total-context backstop (prevents runaway token accumulation on long SDR conversation threads).
+- **Claude CLI**: Nested API errors from structured output now surface properly instead of showing opaque CLI failure messages.
+
+#### Infrastructure & Gateway
+- **Gateway sessions — compaction checkpoints**: Pre-compaction state is now checkpointed with UI branch/restore — you can revert to the conversation state before compaction if a summary loses context.
+- **Compaction provider**: Pluggable via `agents.defaults.compaction.provider` — swap in a different model for compaction without changing your main session model.
+- **HTTP clients**: In-flight chat-completions aborted when client disconnects (prevents orphaned API calls on mobile reconnects).
+- **Model selection**: Explicitly selected session models now resolve separately from runtime fallback chains — no more unexpected model switching mid-session.
+- **Cron jobs**: `jobId` now loaded from on-disk store when missing, fixing "unknown cron job id" errors on gateway restart.
+
+#### Providers
+- **xAI/Grok**: `api.grok.x.ai` recognized as native endpoint; legacy `x_search` auth path maintained.
+- **Mistral**: `reasoning_effort` sent for Mistral Small 4 with thinking-level mapping.
+- **Ollama**: Vision capability auto-detected from API responses; streaming routed to correct endpoint (was defaulting to first configured instance).
+- **Google Gemma**: Explicit thinking-off semantics preserved while reasoning support enabled in compatibility wrappers.
+- **OpenAI TTS / Groq**: Groq endpoints now receive `wav` format; explicit `responseFormat` overrides honored.
+
+#### Tools
+- **Web Fetch**: HTTP/2 disabled for undici 8.0 compatibility (`allowH2: false`) — fixes connection errors on servers running Node 22+ with updated undici.
+- **Exa Search**: Now shown in onboarding and provider pickers — was hidden from setup UI despite being a supported provider.
+- **Memory Vector Recall**: Explicit warning when `sqlite-vec` is unavailable or writes are degraded (instead of silent fallback).
+- **Memory Dreaming**: Config reads/writes now target the selected memory slot plugin instead of always targeting `memory-core`.
+
+#### UI
+- **Control UI light mode**: Scrollbar thumbs now visible in WebKit on light backgrounds.
+- **iOS/Apple Watch**: Approval recovery works while iPhone is locked/backgrounded.
+- **DNS pinning**: Skipped when trusted env-proxy mode is active — allows proxy-only sandboxes to resolve hosts through trusted proxies.
+
+## 2026-04-08 — v3.6.0
+
+### Added
+- **Graphify Knowledge Graph** — Sales intelligence powered by [graphify](https://github.com/safishamsi/graphify)
+  Build queryable knowledge graphs from product catalogs, customer conversations, and
+  market research. Cherry-picked and adapted for B2B SDR context:
+  - Product catalog graph → cross-sell paths, product families, spec relationships
+  - Customer intelligence graph → buying patterns, referral paths, stalled lead recovery
+  - Market research graph → competitive landscape, expansion opportunities
+  - Runtime query via `python3 -m graphify query "topic"` (BFS/DFS traversal)
+  - Interactive HTML visualization for owner dashboard
+  - New skill: `skills/graphify/SKILL.md`
+  - Deploy: auto-installs Python + graphifyy, auto-uploads all local skills
+  - Added to `SKILLS_RESEARCH` in skill profiles (`full` profile)
+
+### Changed
+- **Operator Bilingual Mode now opt-in** — disabled by default, enable via
+  `operator_bilingual: true` in IDENTITY.md. Prevents unexpected self-chat messages
+  for operators who don't need Chinese translation.
+
+### Deployment
+- `deploy.sh` now auto-uploads all local skills from `skills/` directory
+- `deploy.sh` Step 3b: auto-installs Python3 + graphify on target server
+
+---
+
+## 2026-04-08 — OpenClaw v2026.4.7 upstream sync
+
+### Breaking Changes
+
+- **`/allowlist` commands now require owner authorization**
+  `/allowlist add` and `/allowlist remove` previously could be issued by any user. They now require owner-level access. Update your admin flows if you delegated allowlist management to non-owner accounts.
+  Upstream: v2026.4.7
+
+- **Dangerous environment overrides now blocked at model layer**
+  Model-facing tool calls can no longer override Java, Rust, Cargo, Git, Kubernetes, or cloud credential environment variables. If your workflows inject env vars through model instructions, migrate to explicit workspace config or deploy scripts.
+  Upstream: v2026.4.7
+
+- **`gateway config.apply` / `config.patch` writes blocked from model**
+  AI cannot modify gateway config at runtime via these calls. This prevents prompt-injection-based config changes. Existing automation that patches config via the model layer must migrate to direct API calls with human approval.
+  Upstream: v2026.4.7
+
+### Added
+
+- **Webhook Ingress Plugin** — inbound automation drives TaskFlows via shared-secret endpoints
+  External systems (CRMs, zapier, n8n, custom webhooks) can now POST to OpenClaw and trigger or advance TaskFlows directly. This is the cleanest way to implement inbound-lead-to-SDR-flow automation: new lead in CRM → webhook → SDR agent starts outreach sequence.
+
+  ```yaml
+  # workspace config
+  plugins:
+    webhook-ingress:
+      enabled: true
+      secret: "{{WEBHOOK_SECRET}}"    # shared secret for HMAC validation
+      endpoint: "/webhooks/crm"       # path exposed by the gateway
+  ```
+
+  Sample payload to start a TaskFlow:
+  ```json
+  {
+    "event": "lead.created",
+    "flow": "outreach-sequence",
+    "data": { "name": "Li Wei", "company": "Shenzhen MFG Co", "phone": "+86..." }
+  }
+  ```
+  Upstream: v2026.4.7
+
+- **`openclaw infer` CLI Hub** — first-class provider-backed inference
+  New top-level command for running inference tasks outside of conversation context: model completions, media generation, web lookups, and embeddings. Useful for batch processing leads or generating personalized outreach copy at scale.
+
+  ```bash
+  openclaw infer model --prompt "Draft a cold outreach message for Li Wei at Shenzhen MFG" \
+    --provider anthropic --model claude-sonnet-4-6
+  openclaw infer media image --prompt "Product catalog cover" --provider gemini
+  ```
+  Upstream: v2026.4.7
+
+- **Memory/Wiki stack restored** — structured claims, evidence fields, freshness-weighted search
+  The bundled memory-wiki stack is back with meaningful upgrades: claim/evidence structure, contradiction clustering, and freshness weighting. For SDR use: store verified facts about leads (budget signals, authority contacts, pain points) with evidence links. Freshness weighting ensures recent intel ranks higher than stale data.
+  Upstream: v2026.4.7
+
+- **New AI providers: Gemma 4 (Google), Arcee AI**
+  Two new bundled providers. Gemma 4 supports `thinkingOff` semantics for faster, non-reasoning responses — good for high-volume first-touch outreach. Arcee AI includes the Trinity catalog, a curated set of task-specialized models. Added to `workspace/TOOLS.md` provider table.
+  Upstream: v2026.4.7
+
+- **Session compaction checkpoints + branch/restore UI**
+  Sessions UI now shows compaction checkpoints. You can branch from any checkpoint (useful when a long sales conversation goes off-track) or restore pre-compaction state for audit/review. No config needed — automatic.
+  Upstream: v2026.4.7
+
+- **Pluggable compaction provider registry**
+  Plugins can now replace the built-in context summarization pipeline. Enables custom summarization strategies (e.g., preserve all price quotes verbatim while compacting small talk).
+  Upstream: v2026.4.7
+
+### Fixed
+
+- **HTTP requests aborted on client disconnect** — zombie sessions no longer hold resources when a channel disconnects mid-conversation. Improves stability on mobile channels (WhatsApp, Telegram) where connections drop frequently.
+  Upstream: v2026.4.7
+
+- **Docker/Podman auto-binding to `0.0.0.0`** — gateway now auto-binds to all interfaces inside containers. No manual `--bind` flag needed. Simplifies `docker run` and Compose deployments.
+  Upstream: v2026.4.7
+
+- **Prompt-cache runtime context exposure** — prompt cache statistics now surfaced to context engines. Helps diagnose unexpected API costs or latency spikes by showing cache hit/miss at runtime.
+  Upstream: v2026.4.7
+
+- **Ollama vision capability auto-detected** — no longer need to manually declare `vision: true` for Ollama vision models; capability is detected from API responses.
+  Upstream: v2026.4.7
+
+### Security
+
+- Media byte limits enforced before base64 decode on Teams, Signal, and QQ Bot channels — prevents memory exhaustion via crafted media payloads.
+- File upload URLs validated against HTTPS + Microsoft/SharePoint host allowlists — prevents SSRF via document upload.
+- Cross-origin redirect body stripping for POST payloads — prevents credential leakage on redirects.
+- Private-network blocking for main-frame document redirects — closes redirect-based SSRF vector.
+- Workspace-only filesystem constraint enforced for document uploads.
+  Upstream: v2026.4.7
+
+### Documentation
+- Updated `workspace/TOOLS.md`: Webhook Ingress Plugin section, expanded AI provider table (Gemma 4, Arcee AI)
+- Updated `deploy/UPGRADE.md`: v2026.4.7 security breaking changes and migration notes
+
+---
+
+## 2026-04-06 — OpenClaw v2026.4.5 upstream sync
+
+### Breaking Changes (run `openclaw doctor --fix`)
+- **Legacy config aliases removed** — The following keys are no longer recognized at load time:
+  - `talk.voiceId` / `talk.apiKey` → use canonical `voice.*` paths
+  - `agents.*.sandbox.perSession` → use `sandbox.*` canonical paths
+  - `browser.ssrfPolicy.allowPrivateNetwork`
+  - `hooks.internal.handlers`
+  - Channel/group/room `allow` toggles
+  
+  Run `openclaw doctor --fix` to auto-migrate. Backward compat shims remain active during the transition period.
+
+### Fixed
+- **WhatsApp: `blockStreaming` config option restored**
+  The `blockStreaming` option (disables streaming responses on WhatsApp) was inadvertently removed in a prior release. Now restored. No config change needed — existing `blockStreaming: true` configs will work again.
+  Upstream: v2026.4.5
+
+- **Telegram: model picker checks and HTML formatting restored**
+  Non-default model confirmations now correctly show the model name in HTML-formatted messages. DM voice-note transcription restored. Reaction persistence fixed across gateway restarts.
+  Upstream: v2026.4.5
+
+- **Security: plugin allowlists and `/allowlist` access controls hardened**
+  Plugin-only tool allowlists are now properly preserved between restarts. `/allowlist add` and `/allowlist remove` now require owner access. Canvas bridge actions require exact normalized URL matches.
+  Upstream: v2026.4.5
+
+### Added
+- **Multilingual Control UI (12 languages)**
+  The OpenClaw control dashboard and mobile UI are now localized for Simplified Chinese, Traditional Chinese, Brazilian Portuguese, German, Spanish, Japanese, Korean, French, Turkish, Indonesian, Polish, and Ukrainian. Operators in China, Japan, Korea, and LATAM can now manage the SDR agent in their native language.
+  Upstream: v2026.4.5
+
+- **New AI providers: Qwen, Fireworks AI, StepFun, MiniMax**
+  Four new bundled providers are now available as drop-in LLM backends. Qwen and MiniMax are particularly relevant for China-based deployments. Add to `workspace/TOOLS.md` provider table.
+  Upstream: v2026.4.5
+
+- **`openclaw status --verbose`** — New diagnostic flag showing prompt cache reuse statistics. Useful for debugging latency or unexpected API costs.
+  Upstream: v2026.4.5
+
+- **`openclaw plugins install --force`** — Allows replacing an existing installed plugin without manual removal. Useful for development workflows.
+  Upstream: v2026.4.5
+
+### Documentation
+- Updated `workspace/TOOLS.md`: WhatsApp `blockStreaming` note, expanded AI provider table (Qwen, Fireworks, StepFun, MiniMax)
+- Updated `deploy/UPGRADE.md`: v2026.4.5 breaking changes and migration steps
+
+## 2026-04-05 — v3.4.0
+
+### Added
+- **Operator Bilingual Mode** — English for customers, Chinese self-chat sync for operators
+  Non-English-speaking operators can now run a global English-facing SDR without needing
+  to read English. The agent replies to customers in English and immediately sends a
+  Chinese translation to itself via WhatsApp self-chat. Operators read Chinese in their
+  "Message to myself" channel; customers only ever see English.
+
+  How it works:
+  - Customer sends any language → Agent always replies in English
+  - After each English reply → Agent silently sends Chinese translation via self-chat
+  - Owner reports (Pipeline daily, quote approvals, notifications) → always Chinese
+  - No hardcoded numbers, no extra config — works with `selfChatMode: true` (default)
+
+  Updated files: `workspace/AGENTS.md`, `skills/sdr-humanizer/SKILL.md`
+
+## 2026-04-03
+
+### Fixed
+- **Telegram: per-account action configuration now correctly applied during discovery**
+  If you run multiple Telegram bots (e.g., one per market), each account's `actions` block
+  (reactions, polls, inline buttons) is now independently honored. Previously, only the
+  top-level channel config was evaluated regardless of `accountId`.
+  Upstream: `fb8048a188e5` — "fix: honor telegram action discovery account config"
+
+- **Mistral AI provider: full transport compatibility**
+  OpenClaw now correctly handles Mistral's API quirks when using Mistral as the LLM backend:
+  - Uses `max_tokens` instead of `max_completion_tokens`
+  - Suppresses unsupported OpenAI-specific params (`store`, `reasoning_effort`)
+  - Applies automatically for `provider: mistral` and any custom provider whose `baseUrl`
+    points to `api.mistral.ai`
+  Upstream: `6ac5806a3957` — "fix(providers): honor mistral transport compat (#60405)"
+
+### Documentation
+- Added Multi-Account Telegram Setup guide to `workspace/TOOLS.md`
+- Added AI Model Provider reference table (Claude, OpenAI, Mistral, Groq) to `workspace/TOOLS.md`
