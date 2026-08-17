@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy to ~/.pa-config.json and fill in. Read by memos-upsert.py and bulk-embed.py.",
+  "endpoint": "https://your-pulseagent-host.example.com",
+  "token": "Bearer-token-from-PA-settings",
+  "tenant": "your-tenant-slug"
+}

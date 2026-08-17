@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AITZAZ AI 2070 — Control Dashboard</title>
+<style>
+:root{
+  --bg:#04060e; --bg2:#070b18; --panel:rgba(13,20,40,.72); --line:rgba(56,189,248,.16);
+  --cyan:#22d3ee; --violet:#818cf8; --green:#34d399; --amber:#fbbf24; --red:#f87171;
+  --txt:#cbd5e1; --dim:#64748b; --bright:#f1f5f9; --mono:'SF Mono','Cascadia Code','Fira Code',Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--txt); font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background-image:
+    radial-gradient(900px 500px at 85% -10%, rgba(129,140,248,.10), transparent 60%),
+    radial-gradient(800px 500px at -10% 110%, rgba(34,211,238,.08), transparent 60%),
+    linear-gradient(rgba(34,211,238,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,211,238,.045) 1px, transparent 1px);
+  background-size:auto,auto,44px 44px,44px 44px;
+  min-height:100vh;
+}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-shadow:0 0 8px rgba(34,211,238,.7)}
+header{
+  padding:34px 42px 22px; border-bottom:1px solid var(--line);
+  display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px;
+  background:linear-gradient(180deg, rgba(10,16,34,.85), transparent);
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+}
+.logo{font-family:var(--mono)}
+.logo h1{
+  font-size:clamp(26px,4vw,42px); font-weight:800; letter-spacing:3px; color:var(--bright);
+  text-shadow:0 0 22px rgba(34,211,238,.45), 0 0 60px rgba(129,140,248,.25);
+}
+.logo h1 .y{color:var(--cyan)}
+.logo .sub{color:var(--dim); letter-spacing:1.5px; font-size:13px; margin-top:6px; text-transform:uppercase}
+.meta{font-family:var(--mono); font-size:12px; color:var(--dim); text-align:right; line-height:1.9}
+.meta b{color:var(--green); font-weight:600}
+.meta .owner{color:var(--violet); font-weight:700}
+.layout{display:flex; align-items:flex-start}
+nav{
+  width:200px; flex:none; padding:26px 0 26px 20px; position:sticky; top:118px;
+  font-family:var(--mono); font-size:12.5px;
+}
+nav a{
+  display:flex; align-items:center; gap:9px; padding:8px 12px; margin:2px 10px 2px 0;
+  color:var(--dim); border-left:2px solid transparent; letter-spacing:.6px;
+}
+nav a:hover{color:var(--cyan); border-left-color:var(--cyan); text-shadow:none; background:rgba(34,211,238,.05)}
+nav a .dot{width:6px;height:6px;border-radius:1px;background:var(--cyan);opacity:.55;box-shadow:0 0 6px var(--cyan)}
+main{flex:1; padding:26px 42px 60px 10px; max-width:1240px}
+section{margin-bottom:30px; scroll-margin-top:130px}
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 24px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 12px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+  position:relative; overflow:hidden;
+}
+.panel::before{
+  content:''; position:absolute; inset:0 0 auto 0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(34,211,238,.5), transparent);
+}
+h2{
+  font-family:var(--mono); font-size:15px; letter-spacing:2.5px; color:var(--cyan); text-transform:uppercase;
+  display:flex; align-items:center; gap:10px; margin-bottom:16px;
+}
+h2 .ico{width:9px;height:9px;background:var(--cyan);transform:rotate(45deg);box-shadow:0 0 10px var(--cyan)}
+h2 .src{margin-left:auto; font-size:10px; color:var(--dim); letter-spacing:.5px; text-transform:none; font-weight:400}
+.grid{display:grid; gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.stat{
+  background:rgba(9,14,30,.8); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+}
+.stat .k{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--bright)}
+.stat .k.ok{color:var(--green)} .stat .k.warn{color:var(--amber)} .stat .k.bad{color:var(--red)}
+.stat .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.chip{
+  display:inline-block; font-family:var(--mono); font-size:11px; padding:3px 10px; border-radius:20px;
+  border:1px solid; margin:2px 4px 2px 0;
+}
+.chip.ok{color:var(--green);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.07)}
+.chip.warn{color:var(--amber);border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.07)}
+.chip.cyan{color:var(--cyan);border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.06)}
+.chip.violet{color:var(--violet);border-color:rgba(129,140,248,.4);background:rgba(129,140,248,.08)}
+.list{display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.55}
+.list .row{display:flex;gap:12px;align-items:baseline}
+.list .n{font-family:var(--mono);color:var(--violet);flex:none;min-width:26px;font-size:12px}
+.card{
+  background:rgba(9,14,30,.8); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  transition:transform .15s, border-color .15s;
+}
+.card:hover{transform:translateY(-2px); border-color:rgba(34,211,238,.5)}
+.card h3{font-size:14px;color:var(--bright);margin-bottom:6px;font-family:var(--mono);font-weight:600}
+.card p{font-size:12.5px;color:var(--dim);line-height:1.55}
+.card .tag{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.8px;margin-top:8px;display:block}
+.stack{display:flex;flex-direction:column;gap:10px}
+.layer{
+  display:grid; grid-template-columns:52px 170px 1fr; gap:14px; align-items:center;
+  background:rgba(9,14,30,.8); border:1px solid var(--line); border-radius:10px; padding:12px 16px; font-size:13px;
+}
+.layer .lid{font-family:var(--mono);font-weight:800;color:var(--cyan);font-size:17px;text-shadow:0 0 12px rgba(34,211,238,.6)}
+.layer .lname{color:var(--bright);font-weight:600}
+.layer .ldesc{color:var(--dim);font-size:12.5px}
+.mono{font-family:var(--mono)}
+.log{font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--txt);white-space:pre-wrap;word-break:break-word}
+.log .h{color:var(--amber)}
+.future{
+  border:1px dashed rgba(251,191,36,.45); border-radius:10px; padding:12px 16px; font-size:13px;
+  background:rgba(251,191,36,.05);
+}
+.future b{color:var(--amber)}
+footer{
+  padding:26px 42px 40px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px;
+  color:var(--dim); line-height:1.9;
+}
+.nodata{max-width:760px;margin:80px auto;padding:30px}
+.nodata code{background:rgba(34,211,238,.1);padding:2px 8px;border-radius:6px;color:var(--cyan)}
+@media (max-width:900px){ nav{display:none} main{padding:20px} header{position:static} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>AITZAZ AI <span class="y">2070</span></h1>
+    <div class="sub" id="tagline">AI Operating System · SDR Core</div>
+  </div>
+  <div class="meta">
+    OWNER <span class="owner" id="owner">—</span><br>
+    CORE <b id="ver">—</b> · BRANCH <b id="branch">—</b><br>
+    DATA SYNCED <span id="synced">—</span>
+  </div>
+</header>
+
+<div id="nodata" class="nodata panel" hidden>
+  <h2><span class="ico"></span>NO DATA LINK</h2>
+  <p style="font-size:14px;line-height:1.8">
+  This dashboard renders only real project data. Generate it from the repository files:<br><br>
+  <code>npm run dashboard:data</code><br><br>
+  Then reload this page. (Served over HTTP, <code>dashboard/data.json</code> is fetched automatically;
+  opened via <code>file://</code>, the generated <code>dashboard/data.js</code> is used instead.)
+  </p>
+</div>
+
+<div class="layout" id="app" hidden>
+<nav id="nav"></nav>
+<main id="main"></main>
+</div>
+
+<footer>
+  AITZAZ AI 2070 — control surface · all panels cite their source file · panels marked <span style="color:var(--amber)">FUTURE PHASE</span> describe capabilities that do not exist yet and are not faked here.<br>
+  Generated by <span class="mono">scripts/build-dashboard-data.mjs</span>
+</footer>
+
+<script src="data.js"></script>
+<script>
+const SECTIONS = [
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['tasks','Tasks'],
+  ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
+  ['automation','Automation'],['security','Security'],['verification','Verification'],
+  ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
+];
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const src = (s) => `<span class="src">source: ${esc(s)}</span>`;
+const H = (t, s) => `<h2><span class="ico"></span>${esc(t)}${s ? src(s) : ''}</h2>`;
+
+function ready(D){
+  document.getElementById('app').hidden = false;
+  document.getElementById('nodata').hidden = true;
+  document.getElementById('tagline').textContent = D.app.tagline;
+  document.getElementById('owner').textContent = D.app.owner;
+  document.getElementById('ver').textContent = 'v' + D.app.package.version;
+  document.getElementById('branch').textContent = D.git.branch || 'n/a';
+  document.getElementById('synced').textContent = new Date(D.generatedAt).toLocaleString();
+
+  const nav = document.getElementById('nav');
+  nav.innerHTML = SECTIONS.map(([id, label]) =>
+    `<a href="#${id}"><span class="dot"></span>${esc(label.toUpperCase())}</a>`).join('');
+
+  const ws = D.workspace;
+  const wsChips = Object.entries(ws).map(([k, v]) =>
+    `<span class="chip ${v.exists ? 'ok' : 'warn'}">${k}${v.exists ? '' : ' MISSING'}</span>`).join('');
+
+  const sys = `
+  <section id="system"><div class="panel">${H('System Status','package.json + workspace/')}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${D.verification.passed ? 'ok':'bad'}">${D.verification.passed ? 'PASS':'FAIL'}</div><div class="l">Validator</div></div>
+      <div class="stat"><div class="k">${D.skills.length}</div><div class="l">Skills</div></div>
+      <div class="stat"><div class="k">${D.agents.count}</div><div class="l">Pipeline Stages</div></div>
+      <div class="stat"><div class="k">${D.tasks.count}</div><div class="l">Heartbeat Checks</div></div>
+      <div class="stat"><div class="k">${D.productKb.productCount}</div><div class="l">KB Products</div></div>
+      <div class="stat"><div class="k ${D.security.policyFile ? 'ok':'warn'}">${D.security.policyFile ? 'YES':'NO'}</div><div class="l">Security Policy</div></div>
+      <div class="stat"><div class="k ${D.verification.ciWorkflow ? 'ok':'warn'}">${D.verification.ciWorkflow ? 'CI':'—'}</div><div class="l">GitHub Actions</div></div>
+      <div class="stat"><div class="k">${D.memory.layers.length}</div><div class="l">Memory Layers</div></div>
+    </div>
+    <div style="margin-top:14px">${wsChips}</div>
+  </div></section>`;
+
+  const brain = `
+  <section id="brain"><div class="panel">${H('AI Brain', D.aiBrain.source)}
+    <div class="grid g2">
+      <div class="card"><h3>${esc(D.aiBrain.company)}</h3><p>Brand: ${esc(D.aiBrain.brand)}<br>Role: ${esc(D.app.role)}</p><span class="tag">workspace/IDENTITY.md</span></div>
+      <div class="card"><h3>SOUL.md — Core Traits</h3><p>${D.aiBrain.soulTraits.map(esc).join('<br>')}</p><span class="tag">workspace/SOUL.md</span></div>
+    </div>
+  </div></section>`;
+
+  const agents = `
+  <section id="agents"><div class="panel">${H('Agents — Sales Pipeline', D.agents.source)}
+    <div class="list">
+      ${D.agents.stages.map(s => `<div class="row"><span class="n">S${String(s.number).padStart(2,'0')}</span><span>${esc(s.name)}</span><span class="chip cyan" style="margin-left:auto">STAGE</span></div>`).join('')}
+    </div>
+  </div></section>`;
+
+  const tasks = `
+  <section id="tasks"><div class="panel">${H('Tasks — Heartbeat Inspections', D.tasks.source)}
+    <div class="grid g2">
+      ${D.tasks.heartbeatChecks.map(c => `<div class="card"><h3><span style="color:var(--violet)">#${c.number}</span> ${esc(c.name)}</h3></div>`).join('')}
+    </div>
+  </div></section>`;
+
+  const tools = `
+  <section id="tools"><div class="panel">${H('Tools', D.tools.source)}
+    ${D.tools.sections.map(t => `<span class="chip violet">${esc(t)}</span>`).join('')}
+  </div></section>`;
+
+  const memory = `
+  <section id="memory"><div class="panel">${H('Memory — Anti-Amnesia Stack', D.memory.source)}
+    <div class="stack">
+      ${D.memory.layers.map(l => `<div class="layer"><div class="lid">${esc(l.layer)}</div><div class="lname">${esc(l.name)}</div><div class="ldesc"><b style="color:var(--bright)">${esc(l.engine)}</b> — ${esc(l.how)}</div></div>`).join('')}
+    </div>
+  </div></section>`;
+
+  const skills = `
+  <section id="skills"><div class="panel">${H('Skills','skills/*/SKILL.md')}
+    <div class="grid g3">
+      ${D.skills.map(s => `<div class="card"><h3>${esc(s.id)}</h3><p>${esc((s.description || '').slice(0,160))}</p><span class="tag">${s.hasCode ? 'EXECUTABLE CODE INCLUDED' : 'PROMPT SKILL'} · ${esc(s.source)}</span></div>`).join('')}
+    </div>
+  </div></section>`;
+
+  const sdr = `
+  <section id="sdr"><div class="panel">${H('SDR / Work — Product Knowledge Base', D.productKb.source)}
+    <div class="grid g2">
+      <div class="card"><h3>${esc(D.productKb.company || 'Catalog')}</h3><p>Products: ${D.productKb.productCount}<br>Last updated: ${esc(D.productKb.lastUpdated)}</p></div>
+      <div class="card"><h3>Categories</h3><p>${D.productKb.categories.map(c => `${esc(c.name)} — ${c.products} products`).join('<br>')}</p></div>
+    </div>
+    <div class="future" style="margin-top:14px"><b>FUTURE PHASE:</b> live deal pipeline (CRM rows, quotes in flight) renders here once a CRM is connected via deploy/config.sh.</div>
+  </div></section>`;
+
+  const automation = `
+  <section id="automation"><div class="panel">${H('Automation — Reporting Cadence', D.automation.source)}
+    <div class="list">${D.automation.reportingCadence.map(r => `<div class="row"><span class="chip cyan">${esc(r.replace(/^- /,'').split(':')[0])}</span><span>${esc(r.replace(/^- /,'').split(':').slice(1).join(':').trim())}</span></div>`).join('')}</div>
+    <div class="future" style="margin-top:14px"><b>FUTURE PHASE:</b> live heartbeat run history (executes on the deployed OpenClaw gateway).</div>
+  </div></section>`;
+
+  const security = `
+  <section id="security"><div class="panel">${H('Security', D.security.source)}
+    <div class="list">
+      <div class="row"><span class="chip ${D.security.policyFile?'ok':'warn'}">POLICY</span><span>SECURITY.md present — report via ${esc(D.security.reportingChannel)}</span></div>
+      <div class="row"><span class="chip ${D.security.promptInjectionDefense?'ok':'warn'}">DEFENSE</span><span>Prompt-injection defense rules active in SOUL.md</span></div>
+      ${D.security.soulProtocols.slice(0,10).map(p => `<div class="row"><span class="n">▸</span><span>${esc(p.replace(/^- |^\d+\. /,''))}</span></div>`).join('')}
+    </div>
+  </div></section>`;
+
+  const verification = `
+  <section id="verification"><div class="panel">${H('Verification', D.verification.validatorScript)}
+    <div style="margin-bottom:12px">
+      <span class="chip ${D.verification.passed?'ok':'warn'}">${D.verification.passed ? 'ALL CHECKS PASSED':'CHECKS FAILED'}</span>
+      <span class="chip ${D.verification.ciWorkflow?'cyan':'warn'}">${D.verification.ciWorkflow ? 'CI: .github/workflows/validate.yml':'NO CI WORKFLOW'}</span>
+      <span class="chip violet">ran ${esc(new Date(D.verification.ranAt).toLocaleString())}</span>
+    </div>
+    <div class="log">${D.verification.checks.map(c => `<span style="color:var(--green)">OK</span> ${esc(c)}`).join('\n')}</div>
+  </div></section>`;
+
+  const github = `
+  <section id="github"><div class="panel">${H('GitHub', D.git.source)}
+    <div class="list">
+      <div class="row"><span class="n">REMOTE</span><span class="mono">${esc(D.git.remote || 'n/a')}</span></div>
+      <div class="row"><span class="n">BRANCH</span><span class="mono">${esc(D.git.branch || 'n/a')}</span></div>
+      <div class="row"><span class="n">SKILL</span><span class="mono">aitzaz-ai-2070 (SKILL.md)</span></div>
+    </div>
+    <div class="future" style="margin-top:14px"><b>FUTURE PHASE:</b> publication to the ClawHub skill marketplace.</div>
+  </div></section>`;
+
+  const activity = `
+  <section id="activity"><div class="panel">${H('Activity Logs', D.git.source + ' + CHANGELOG.md')}
+    ${D.changelog.latest ? `<p style="margin-bottom:12px;font-size:13px">Latest changelog entry: <b style="color:var(--bright)">${esc(D.changelog.latest)}</b></p>` : ''}
+    <div class="log">${D.git.activity.map(a => `<span class="h">${esc(a.hash)}</span> ${esc(a.date)}  ${esc(a.message)}`).join('\n') || 'no git history available at build time'}</div>
+  </div></section>`;
+
+  const future = `
+  <section id="future"><div class="panel" style="border-style:dashed;border-color:rgba(251,191,36,.4)">${H('Future Phases — Not Yet Implemented','honest roadmap')}
+    <div class="stack">
+      ${D.future_phases.map(f => `<div class="future"><b>${esc(f.area)}:</b> ${esc(f.item)}</div>`).join('')}
+    </div>
+  </div></section>`;
+
+  document.getElementById('main').innerHTML =
+    sys + brain + agents + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+}
+
+if (window.AITZAZ_DATA) ready(window.AITZAZ_DATA);
+else fetch('data.json').then(r => r.json()).then(ready).catch(() => { document.getElementById('nodata').hidden = false; });
+</script>
+</body>
+</html>

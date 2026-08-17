@@ -1,0 +1,17 @@
+{
+  "name": "aitzaz-ai-2070",
+  "version": "4.0.0",
+  "private": true,
+  "description": "AITZAZ AI 2070 — Aitzaz's futuristic AI operating system for B2B sales (OpenClaw deployment, evolved from the open-source B2B SDR Agent Template).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "validate": "bash scripts/validate-template.sh",
+    "test": "npm run validate",
+    "dashboard:data": "node scripts/build-dashboard-data.mjs",
+    "dashboard": "node scripts/build-dashboard-data.mjs && echo 'Open dashboard/index.html in a browser (or serve with any static file server).'"
+  }
+}
