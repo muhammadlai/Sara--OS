@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AITZAZ AI — B2B SDR Agent Console</title>
+<meta name="description" content="Sara--OS B2B SDR Agent Console by AITZAZ AI — leads, scoring, pipeline, outreach and system health at a glance.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234f46e5'/%3E%3Cpath d='M9 22V10l7 7 7-7v12' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  /* ── Design tokens ─────────────────────────────────────────── */
+  :root {
+    --bg: #0b0e17;
+    --bg-soft: #10141f;
+    --panel: #141927;
+    --panel-2: #1a2133;
+    --panel-3: #202942;
+    --border: #232c44;
+    --border-soft: #1b2338;
+    --text: #e8ecf6;
+    --text-dim: #9aa6c0;
+    --text-faint: #64708c;
+    --accent: #6d6af8;
+    --accent-2: #8b7cff;
+    --accent-soft: rgba(109, 106, 248, .14);
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, .13);
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, .13);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, .13);
+    --cyan: #38bdf8;
+    --cyan-soft: rgba(56, 189, 248, .13);
+    --pink: #e879f9;
+    --pink-soft: rgba(232, 121, 249, .13);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    --shadow-sm: 0 4px 14px rgba(0, 0, 0, .28);
+    --sidebar-w: 244px;
+    --topbar-h: 62px;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background:
+      radial-gradient(1000px 500px at 85% -10%, rgba(109, 106, 248, .09), transparent 60%),
+      radial-gradient(800px 400px at -10% 110%, rgba(56, 189, 248, .06), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(109, 106, 248, .35); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #2a3452; border-radius: 8px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ── Layout ────────────────────────────────────────────────── */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: linear-gradient(180deg, #0e1220, #0b0e17);
+    border-right: 1px solid var(--border-soft);
+    position: fixed; inset: 0 auto 0 0;
+    display: flex; flex-direction: column;
+    z-index: 50; transition: transform .25s ease;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .brand-logo {
+    width: 38px; height: 38px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--accent), #a855f7 60%, #f472b6);
+    display: grid; place-items: center;
+    box-shadow: 0 6px 18px rgba(109, 106, 248, .4);
+  }
+  .brand-logo svg { width: 20px; height: 20px; }
+  .brand-name { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
+  .brand-sub { font-size: 11px; color: var(--text-faint); letter-spacing: .14em; text-transform: uppercase; margin-top: 1px; }
+
+  .nav { padding: 14px 12px; overflow-y: auto; flex: 1; }
+  .nav-label {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--text-faint); padding: 12px 10px 6px; font-weight: 700;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    width: 100%; padding: 9px 10px; margin-bottom: 2px;
+    background: none; border: 0; border-radius: var(--radius-sm);
+    color: var(--text-dim); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; text-align: left; transition: background .15s, color .15s;
+  }
+  .nav-item svg { width: 17px; height: 17px; flex: none; opacity: .85; }
+  .nav-item:hover { background: rgba(255, 255, 255, .045); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-soft); color: #c7c3ff;
+    box-shadow: inset 2.5px 0 0 var(--accent);
+  }
+  .nav-badge {
+    margin-left: auto; font-size: 10.5px; font-weight: 700;
+    background: var(--panel-3); color: var(--text-dim);
+    border-radius: 20px; padding: 1.5px 8px;
+  }
+  .nav-badge.hot { background: var(--red-soft); color: var(--red); }
+
+  .sidebar-foot {
+    padding: 14px 16px; border-top: 1px solid var(--border-soft);
+    font-size: 11.5px; color: var(--text-faint); line-height: 1.6;
+  }
+  .sidebar-foot b { color: var(--text-dim); }
+  .pulse-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,.5);} 50% { opacity: .7; box-shadow: 0 0 0 4px rgba(52,211,153,0);} }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    height: var(--topbar-h); position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 26px;
+    background: rgba(11, 14, 23, .82); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .topbar-title { font-size: 15.5px; font-weight: 700; }
+  .topbar-crumb { color: var(--text-faint); font-size: 12px; margin-top: 1px; }
+  .topbar-spacer { flex: 1; }
+  .topbar-search {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 9px; padding: 7px 12px; width: 250px;
+  }
+  .topbar-search svg { width: 14px; height: 14px; color: var(--text-faint); flex: none; }
+  .topbar-search input {
+    background: none; border: 0; outline: 0; color: var(--text);
+    font-size: 13px; width: 100%; font-family: inherit;
+  }
+  .topbar-search input::placeholder { color: var(--text-faint); }
+  .chip-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text-dim); border-radius: 9px;
+    padding: 7px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .chip-btn:hover { color: var(--text); border-color: #334060; }
+  .chip-btn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  .menu-btn { display: none; background: none; border: 1px solid var(--border); border-radius: 9px; padding: 7px 10px; cursor: pointer; color: var(--text); }
+  .menu-btn svg { width: 17px; height: 17px; }
+
+  .content { padding: 24px 26px 40px; flex: 1; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(4, 6, 12, .6); z-index: 45; }
+
+  /* ── Cards & grids ─────────────────────────────────────────── */
+  .grid { display: grid; gap: 16px; }
+  .grid.kpis { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+  .grid.cols-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .card {
+    background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 18px 20px;
+  }
+  .card.pad-0 { padding: 0; }
+  .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .card-head h3 { font-size: 13.5px; font-weight: 700; letter-spacing: .01em; }
+  .card-head .hint { margin-left: auto; font-size: 11.5px; color: var(--text-faint); }
+  .card-head .icon {
+    width: 30px; height: 30px; border-radius: 8px; flex: none;
+    display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent-2);
+  }
+  .card-head .icon svg { width: 15px; height: 15px; }
+  .card-head .icon.green { background: var(--green-soft); color: var(--green); }
+  .card-head .icon.amber { background: var(--amber-soft); color: var(--amber); }
+  .card-head .icon.red { background: var(--red-soft); color: var(--red); }
+  .card-head .icon.cyan { background: var(--cyan-soft); color: var(--cyan); }
+  .card-head .icon.pink { background: var(--pink-soft); color: var(--pink); }
+
+  .kpi { position: relative; overflow: hidden; }
+  .kpi::after {
+    content: ""; position: absolute; right: -30px; top: -30px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(109,106,248,.14), transparent 70%);
+  }
+  .kpi .label { font-size: 11.5px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+  .kpi .value { font-size: 26px; font-weight: 800; margin-top: 6px; letter-spacing: -.01em; }
+  .kpi .delta { font-size: 12px; margin-top: 5px; color: var(--text-dim); }
+  .kpi .delta.up { color: var(--green); }
+  .kpi .delta.down { color: var(--red); }
+
+  /* ── Tables ────────────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--text-faint); font-weight: 700;
+    padding: 12px 14px; border-bottom: 1px solid var(--border-soft);
+    background: rgba(255, 255, 255, .015); white-space: nowrap;
+  }
+  .tbl tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+  .tbl tbody tr:last-child td { border-bottom: 0; }
+  .tbl tbody tr { transition: background .12s; }
+  .tbl tbody tr:hover { background: rgba(255, 255, 255, .028); }
+  .tbl .cell-main { font-weight: 600; color: var(--text); }
+  .tbl .cell-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+  .tbl .num { font-variant-numeric: tabular-nums; }
+
+  /* ── Badges & chips ────────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .badge .b-dot { width: 5.5px; height: 5.5px; border-radius: 50%; background: currentColor; }
+  .b-green { background: var(--green-soft); color: var(--green); }
+  .b-amber { background: var(--amber-soft); color: var(--amber); }
+  .b-red { background: var(--red-soft); color: var(--red); }
+  .b-cyan { background: var(--cyan-soft); color: var(--cyan); }
+  .b-pink { background: var(--pink-soft); color: var(--pink); }
+  .b-gray { background: rgba(255,255,255,.06); color: var(--text-dim); }
+  .b-accent { background: var(--accent-soft); color: #b9b4ff; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600; color: var(--text-dim);
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3.5px 10px;
+  }
+
+  /* ── Bars & meters ─────────────────────────────────────────── */
+  .bar { height: 6px; border-radius: 6px; background: var(--panel-3); overflow: hidden; min-width: 90px; }
+  .bar > i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar.green > i { background: linear-gradient(90deg, #10b981, var(--green)); }
+  .bar.amber > i { background: linear-gradient(90deg, #f59e0b, var(--amber)); }
+  .bar.red > i { background: linear-gradient(90deg, #ef4444, var(--red)); }
+  .bar.cyan > i { background: linear-gradient(90deg, #0ea5e9, var(--cyan)); }
+  .score-row { display: flex; align-items: center; gap: 10px; }
+  .score-num { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; width: 22px; }
+
+  .funnel { display: flex; flex-direction: column; gap: 7px; }
+  .funnel-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .funnel-row .f-label { width: 150px; flex: none; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .funnel-row .f-count { width: 40px; flex: none; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .funnel-track { flex: 1; height: 18px; border-radius: 6px; background: var(--panel-3); display: flex; align-items: center; }
+  .funnel-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; color: #fff; font-weight: 700; min-width: 26px; }
+
+  /* ── Timeline / activity ───────────────────────────────────── */
+  .feed { display: flex; flex-direction: column; }
+  .feed-item { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+  .feed-item:last-child { border-bottom: 0; }
+  .feed-ic {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font-size: 12px; font-weight: 800;
+  }
+  .feed-body { min-width: 0; }
+  .feed-title { font-size: 13px; font-weight: 600; }
+  .feed-title .hl { color: var(--accent-2); font-weight: 700; }
+  .feed-meta { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .feed-time { margin-left: auto; flex: none; }
+
+  /* ── Buttons ───────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 9px; padding: 8px 15px;
+    font-size: 12.5px; font-weight: 650; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    transition: all .15s;
+  }
+  .btn svg { width: 14px; height: 14px; }
+  .btn:hover { border-color: #3a4568; background: var(--panel-3); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), #7c6cf6);
+    border-color: transparent; color: #fff;
+    box-shadow: 0 6px 16px rgba(109, 106, 248, .35);
+  }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: none; border-color: var(--border); color: var(--text-dim); }
+  .btn.ghost:hover { color: var(--text); }
+  .btn.sm { padding: 5.5px 11px; font-size: 11.5px; }
+
+  .seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 2px; }
+  .seg button {
+    background: none; border: 0; color: var(--text-faint);
+    font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 7px; cursor: pointer;
+  }
+  .seg button.active { background: var(--accent-soft); color: #c7c3ff; }
+
+  /* ── Forms ─────────────────────────────────────────────────── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11.5px; font-weight: 700; color: var(--text-dim); letter-spacing: .04em; text-transform: uppercase; }
+  .input, .select {
+    background: var(--bg-soft); border: 1px solid var(--border); color: var(--text);
+    border-radius: 9px; padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 106, 248, .18); }
+  .select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364708c' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+  /* ── Skeleton loading ──────────────────────────────────────── */
+  .skeleton { position: relative; overflow: hidden; }
+  .skeleton::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.05), transparent);
+    animation: shimmer 1.3s infinite;
+  }
+  @keyframes shimmer { 0% { transform: translateX(-100%);} 100% { transform: translateX(100%);} }
+  .sk-line { height: 13px; border-radius: 6px; background: var(--panel-3); margin-bottom: 10px; }
+  .sk-kpi { height: 74px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--border); }
+  .sk-row { height: 40px; border-radius: 8px; background: var(--panel-3); margin-bottom: 8px; }
+
+  /* ── Empty states ──────────────────────────────────────────── */
+  .empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 44px 20px; color: var(--text-faint);
+  }
+  .empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: .5; }
+  .empty b { color: var(--text-dim); font-size: 13.5px; }
+  .empty p { font-size: 12px; margin-top: 4px; max-width: 320px; }
+
+  /* ── Misc ──────────────────────────────────────────────────── */
+  .view { display: none; }
+  .view.active { display: block; animation: fadeUp .22s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(5px);} to { opacity: 1; transform: none;} }
+  .section-title { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+  .section-sub { color: var(--text-faint); font-size: 12.5px; margin-top: 3px; }
+  .row-between { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .mt-0 { margin-top: 0; } .mt-1 { margin-top: 8px; } .mt-2 { margin-top: 16px; } .mt-3 { margin-top: 24px; }
+  .mb-2 { margin-bottom: 16px; }
+  .mono { font-family: var(--mono); font-size: 12px; }
+  .muted { color: var(--text-faint); }
+  .mini-note { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px; font-size: 12.5px; }
+  .kv dt { color: var(--text-faint); }
+  .kv dd { color: var(--text); font-weight: 550; }
+  .list-check { display: flex; flex-direction: column; gap: 9px; }
+  .check-item { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; color: var(--text-dim); }
+  .check-item svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+  .check-item.ok svg { color: var(--green); }
+  .check-item.ok { color: var(--text); }
+  .check-item.fail svg { color: var(--red); }
+  .check-item .mono { margin-left: auto; color: var(--text-faint); }
+
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font-size: 11px; font-weight: 800;
+    color: #fff; background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  }
+  .lead-cell { display: flex; align-items: center; gap: 10px; min-width: 170px; }
+  .flag { font-size: 14px; }
+  .tag { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); background: var(--panel-3); border-radius: 5px; padding: 2px 6px; }
+
+  .stage-card { display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
+  .stage-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: .7; }
+  .stage-card .s-num { font-size: 11px; font-weight: 800; color: var(--accent-2); letter-spacing: .1em; }
+  .stage-card .s-name { font-size: 14px; font-weight: 700; }
+  .stage-card .s-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  .skill-card { display: flex; flex-direction: column; gap: 9px; }
+  .skill-card .s-head { display: flex; align-items: center; gap: 10px; }
+  .skill-card .s-ic {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-2);
+  }
+  .skill-card .s-ic svg { width: 17px; height: 17px; }
+  .skill-card .s-name { font-weight: 700; font-size: 13.5px; }
+  .skill-card .s-cat { font-size: 11px; color: var(--text-faint); }
+  .skill-card .s-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; flex: 1; }
+
+  .mem-layer { display: flex; gap: 14px; align-items: flex-start; }
+  .mem-badge {
+    width: 42px; height: 42px; border-radius: 11px; flex: none;
+    display: grid; place-items: center; font-weight: 800; font-size: 13px;
+    background: var(--accent-soft); color: #b9b4ff; border: 1px solid rgba(109,106,248,.35);
+  }
+  .mem-layer .m-name { font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mem-layer .m-desc { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.55; }
+
+  .campaign { display: flex; flex-direction: column; gap: 10px; }
+  .campaign .c-head { display: flex; align-items: center; gap: 10px; }
+  .campaign .c-name { font-weight: 700; font-size: 13.5px; }
+  .campaign .c-sub { font-size: 11.5px; color: var(--text-faint); }
+  .camp-stats { display: flex; gap: 16px; font-size: 12px; }
+  .camp-stats b { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .camp-stats span { color: var(--text-faint); }
+
+  .timeline { position: relative; padding-left: 22px; }
+  .timeline::before { content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding-bottom: 16px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -21.5px; top: 4px;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--bg); border: 2.5px solid var(--accent);
+  }
+  .tl-item.done::before { border-color: var(--green); background: var(--green); }
+  .tl-item.now::before { border-color: var(--amber); background: var(--amber); box-shadow: 0 0 0 4px rgba(251,191,36,.18); }
+  .tl-item .t-title { font-weight: 650; font-size: 13px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tl-item .t-body { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+
+  .channel { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-soft); }
+  .channel .c-ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+  .channel .c-name { font-weight: 650; font-size: 13px; }
+  .channel .c-status { font-size: 11.5px; color: var(--text-faint); margin-top: 1px; }
+  .channel .c-right { margin-left: auto; text-align: right; font-size: 11.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+
+  .footer-note {
+    margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 11.5px; color: var(--text-faint);
+  }
+  .footer-note .sep { flex: 1; }
+
+  /* ── Responsive ────────────────────────────────────────────── */
+  @media (max-width: 1080px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: none; box-shadow: 0 0 60px rgba(0,0,0,.6); }
+    .overlay.show { display: block; }
+    .main { margin-left: 0; }
+    .menu-btn { display: inline-flex; }
+    .topbar-search { width: 170px; }
+  }
+  @media (max-width: 640px) {
+    .content { padding: 16px 14px 30px; }
+    .topbar { padding: 0 14px; }
+    .topbar-search { display: none; }
+    .card { padding: 15px 15px; }
+    .funnel-row .f-label { width: 110px; }
+    .kv { grid-template-columns: 105px 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17V7l7 7 7-7v10"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">AITZAZ AI</div>
+        <div class="brand-sub">SDR Agent Console</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-label">Operations</div>
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" data-view="leads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 5.5a3.2 3.2 0 0 1 0 5.9M17.5 14.6c1.9.7 3 2.1 3.4 4"/></svg>
+        Leads
+        <span class="nav-badge hot">37</span>
+      </button>
+      <button class="nav-item" data-view="pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M6 9h12M8.5 13h7M10.5 17h3M12 21l-1.5-4h3L12 21z" opacity="0"/><path d="M4 5h16M6 9h12M8 13h8M10 17h4"/></svg>
+        Pipeline
+      </button>
+      <button class="nav-item" data-view="campaigns">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h3l3-8 4 16 3-8h3"/></svg>
+        Campaigns
+        <span class="nav-badge">4</span>
+      </button>
+      <button class="nav-item" data-view="outreach">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></svg>
+        Outreach
+      </button>
+      <button class="nav-item" data-view="replies">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.5-2.8A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/></svg>
+        Replies
+        <span class="nav-badge hot">12</span>
+      </button>
+      <div class="nav-label">Agent</div>
+      <button class="nav-item" data-view="memory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="13" rx="2.5"/><path d="M9 21h6M12 17v4"/><path d="M8 9.5h8M8 12.5h5"/></svg>
+        Memory
+      </button>
+      <button class="nav-item" data-view="skills">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 4.8 5.3.6-4 3.6 1.1 5.2L12 14.8 7.4 17.2l1.1-5.2-4-3.6 5.3-.6z"/></svg>
+        Skills
+        <span class="nav-badge">8</span>
+      </button>
+      <button class="nav-item" data-view="system">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01M10.5 7.5h6M10.5 16.5h6"/></svg>
+        System
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div><span class="pulse-dot"></span><b>Gateway online</b></div>
+      <div style="margin-top:4px">OpenClaw · port 18789 · v2026.6.6</div>
+      <div style="margin-top:8px;opacity:.75">github.com/muhammadlai/Sara--OS</div>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ══ Main ══ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div>
+        <div class="topbar-title" id="topTitle">Overview</div>
+        <div class="topbar-crumb" id="topCrumb">AITZAZ AI · Sara--OS B2B SDR Agent</div>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="text" id="globalSearch" placeholder="Search leads, companies…" aria-label="Global search">
+      </div>
+      <button class="chip-btn" id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M21 12a9 9 0 1 1-2.6-6.3M21 3v6h-6"/></svg>
+        Refresh
+      </button>
+    </header>
+
+    <main class="content" id="content">
+      <!-- views injected by JS -->
+    </main>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════
+   AITZAZ AI — B2B SDR Agent Console (demo data)
+   Self-contained: no build step, no external assets.
+   ═══════════════════════════════════════════════════════════ */
+
+const T = {  // tiny helpers
+  $(sel, root) { return (root || document).querySelector(sel); },
+  $$(sel, root) { return Array.from((root || document).querySelectorAll(sel)); },
+  esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); },
+  fmt(n) { return new Intl.NumberFormat("en-US").format(n); },
+  money(n) { return "$" + new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n); },
+  now() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+};
+
+const ICONS = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7z"/></svg>',
+  zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.5-2.8A8 8 0 1 1 21 12z"/></svg>',
+  brain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4a2.5 2.5 0 0 0-2.5 2.5v.6A2.5 2.5 0 0 0 5 9.5 2.5 2.5 0 0 0 4 12a2.5 2.5 0 0 0 1 2 2.5 2.5 0 0 0 2 4.4 2.5 2.5 0 0 0 4.5 1.3 2.5 2.5 0 0 0 5-1.2 2.5 2.5 0 0 0 .5-4.9 2.5 2.5 0 0 0-.4-4.8 2.5 2.5 0 0 0-3.6-2.3A2.5 2.5 0 0 0 9.5 4z"/><path d="M12 8v8M8.5 10.5l7 3M15.5 10.5l-7 3"/></svg>',
+  layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>',
+  server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01M10.5 7.5h6M10.5 16.5h6"/></svg>',
+  tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>'
+};
+
+/* ── Demo data (representative of the deployed agent) ─────── */
+const STAGES = [
+  { n: 1, name: "Lead Capture", desc: "Inbound detection across WhatsApp, Telegram, CTWA ads and email. Duplicate-aware CRM entry.", count: 1284, color: "#6d6af8" },
+  { n: 2, name: "BANT Qualification", desc: "Natural-conversation assessment of Budget, Authority, Need and Timeline — 1–2 dimensions per turn.", count: 743, color: "#8b7cff" },
+  { n: 3, name: "CRM Entry", desc: "Structured capture: name, company, country, language, ICP score, product interest, next action.", count: 689, color: "#a78bfa" },
+  { n: 4, name: "Research & Enrichment", desc: "Jina AI web search + website analysis. 3-layer enrichment pipeline with Supermemory storage.", count: 512, color: "#818cf8" },
+  { n: 5, name: "Quotation", desc: "Auto-generated proforma invoices. Owner approval with 2h lock timeout and escalation.", count: 318, color: "#38bdf8" },
+  { n: 6, name: "Negotiation", desc: "Counter-offer tracking, strategy recommendations, authorization matrix for discounts & MOQ.", count: 187, color: "#34d399" },
+  { n: 7, name: "Reporting", desc: "Daily 09:00 pipeline reports, 15:00 stalled alerts, weekly Monday summaries to the owner.", count: 164, color: "#fbbf24" },
+  { n: 8, name: "Nurture", desc: "Automated follow-ups, industry news, after-sale care and quarterly check-ins.", count: 121, color: "#f472b6" },
+  { n: 9, name: "Email Outreach", desc: "Personalized cold sequences on Day 1/3/7/14 with automatic follow-up and reply routing.", count: 96, color: "#e879f9" },
+  { n: 10, name: "Multi-Channel Orchestration", desc: "Cross-channel coordination — WhatsApp + Email + Telegram with 72h-window switching.", count: 58, color: "#fb923c" }
+];
+
+const CRON = [
+  { name: "New lead intake", schedule: "Every heartbeat", last: "2 min ago", status: "ok", note: "4 new leads captured" },
+  { name: "Gmail inbox scan", schedule: "Every 30 min", last: "18 min ago", status: "ok", note: "2 client replies routed" },
+  { name: "Pipeline daily report", schedule: "Daily 09:00", last: "Yesterday 09:00", status: "ok", note: "Sent via WhatsApp" },
+  { name: "AI lead discovery", schedule: "Daily 10:00", last: "Today 10:00", status: "ok", note: "Market rotation: Africa" },
+  { name: "Email sequence check", schedule: "Daily 11:00", last: "Today 11:00", status: "ok", note: "12 follow-ups queued" },
+  { name: "CRM snapshot → ChromaDB", schedule: "Daily 12:00", last: "Today 12:00", status: "ok", note: "L4 backup complete" },
+  { name: "Memory health check", schedule: "Daily 14:00", last: "Today 14:00", status: "ok", note: "ChromaDB + Supermemory healthy" },
+  { name: "Stalled lead detection", schedule: "Daily 15:00", last: "Today 15:00", status: "warn", note: "3 leads > 5 days idle" },
+  { name: "Nurture campaign", schedule: "Weekly Wed", last: "2 days ago", status: "ok", note: "89 recipients touched" },
+  { name: "Competitor intelligence", schedule: "Weekly Fri", last: "Yesterday", status: "ok", note: "3 intel notes stored" },
+  { name: "Weekly summary", schedule: "Weekly Mon", last: "5 days ago", status: "ok", note: "Sent to owner" },
+  { name: "Teams handoff scan", schedule: "Every heartbeat", last: "2 min ago", status: "idle", note: "No mentions" },
+  { name: "WhatsApp 72h window check", schedule: "Every 30 min", last: "6 min ago", status: "ok", note: "1 lead switched to Telegram" },
+  { name: "Data quality checks", schedule: "Weekdays", last: "Today 09:30", status: "ok", note: "All CRM fields valid" }
+];
+
+const LEADS = [
+  { id: "LD-1042", company: "Al Najd Trading Co.", contact: "Omar Al-Farsi", role: "Procurement Manager", country: "🇸🇦 Saudi Arabia", lang: "AR/EN", product: "Diesel generators 150kVA", icp: 8.6, bant: "3/4", tier: "hot", status: "negotiating", channel: "WhatsApp", last: "35 min ago", next: "Send revised FOB quote" },
+  { id: "LD-1038", company: "Lagos Freight & Logistics", contact: "Chiamaka Nwosu", role: "Director", country: "🇳🇬 Nigeria", lang: "EN", product: "Cargo trucks 6×4", icp: 8.2, bant: "4/4", tier: "hot", status: "quote_sent", channel: "Email", last: "2 h ago", next: "Follow up on quote feedback" },
+  { id: "LD-1031", company: "PT Sumber Jaya Motor", contact: "Budi Santoso", role: "Owner", country: "🇮🇩 Indonesia", lang: "ID", product: "Motorcycle parts kit", icp: 7.9, bant: "3/4", tier: "hot", status: "interested", channel: "Telegram", last: "4 h ago", next: "Share catalog + MOQ table" },
+  { id: "LD-1027", company: "Grupo Andino Import", contact: "María Fernández", role: "Import Lead", country: "🇨🇱 Chile", lang: "ES", product: "Solar inverters 5–10kW", icp: 7.4, bant: "3/4", tier: "hot", status: "email_replied", channel: "Email", last: "5 h ago", next: "Book qualification call" },
+  { id: "LD-1022", company: "Cairo Heavy Machinery", contact: "Karim Hassan", role: "Ops Manager", country: "🇪🇬 Egypt", lang: "AR", product: "Forklifts 3.5t", icp: 7.1, bant: "2/4", tier: "warm", status: "contacted", channel: "WhatsApp", last: "1 d ago", next: "BANT follow-up Q2" },
+  { id: "LD-1018", company: "Tashkent Agro Trade", contact: "Dilnoza Rahimova", role: "Purchasing", country: "🇺🇿 Uzbekistan", lang: "UZ/RU", product: "Irrigation pumps", icp: 6.8, bant: "3/4", tier: "warm", status: "interested", channel: "Telegram", last: "1 d ago", next: "Send pump spec sheet" },
+  { id: "LD-1014", company: "Acme Retail Group (Dubai)", contact: "Sara Khalid", role: "Buyer", country: "🇦🇪 UAE", lang: "EN", product: "LED panels", icp: 6.5, bant: "2/4", tier: "warm", status: "email_sent", channel: "Email", last: "2 d ago", next: "Day-3 follow-up #2" },
+  { id: "LD-1009", company: "Manila Construction Supply", contact: "Jose Ramirez", role: "Owner", country: "🇵🇭 Philippines", lang: "EN", product: "Rebar & fasteners", icp: 6.2, bant: "2/4", tier: "warm", status: "contacted", channel: "WhatsApp", last: "2 d ago", next: "Share price list" },
+  { id: "LD-1003", company: "Nairobi Auto Spares", contact: "Wanjiku Kamau", role: "Manager", country: "🇰🇪 Kenya", lang: "EN/SW", product: "Brake parts (OEM)", icp: 5.9, bant: "2/4", tier: "warm", status: "nurture", channel: "WhatsApp", last: "5 d ago", next: "Nurture touch (14-day cycle)" },
+  { id: "LD-0998", company: "Casablanca Textiles", contact: "Youssef Benali", role: "Director", country: "🇲🇦 Morocco", lang: "FR", product: "GOTS-certified fabric", icp: 5.4, bant: "1/4", tier: "cold", status: "email_sent", channel: "Email", last: "6 d ago", next: "Day-7 follow-up #3" },
+  { id: "LD-0991", company: "Quito Home Centers", contact: "Ana Salazar", role: "Category Lead", country: "🇪🇨 Ecuador", lang: "ES", product: "Kitchen appliances", icp: 5.1, bant: "1/4", tier: "cold", status: "nurture", channel: "Email", last: "9 d ago", next: "Industry news touch" },
+  { id: "LD-0985", company: "Bangkok E-Commerce Co.", contact: "Pimchanok Srisai", role: "Founder", country: "🇹🇭 Thailand", lang: "TH", product: "Smart home devices", icp: 4.8, bant: "1/4", tier: "cold", status: "new", channel: "Telegram", last: "12 d ago", next: "First-touch message" },
+  { id: "LD-0979", company: "Lima Agro Exports", contact: "Carlos Mendoza", role: "Owner", country: "🇵🇪 Peru", lang: "ES", product: "Dried fruit packaging", icp: 4.5, bant: "2/4", tier: "cold", status: "closed_lost", channel: "Email", last: "20 d ago", next: "Quarterly re-engage (90d)" },
+  { id: "LD-0972", company: "Istanbul Tekstil A.Ş.", contact: "Elif Yılmaz", role: "Purchasing", country: "🇹🇷 Türkiye", lang: "TR", product: "Denim fabric rolls", icp: 4.2, bant: "1/4", tier: "cold", status: "new", channel: "WhatsApp", last: "14 d ago", next: "ICP re-score after silence" }
+];
+
+const CAMPAIGNS = [
+  { name: "Email cold sequence — Tier A", sub: "Day 1 / 3 / 7 / 14 · personalized first-touch", sent: 412, opened: 214, replied: 37, goal: "Book discovery call", color: "#6d6af8", icon: "mail", pct: 52 },
+  { name: "Wednesday nurture wave", sub: "Weekly touch for nurture pool (14-day cycle)", sent: 896, opened: 511, replied: 61, goal: "Re-activate dormant leads", color: "#38bdf8", icon: "zap", pct: 57 },
+  { name: "Lead discovery rotation", sub: "Daily 10:00 · Africa / ME / SEA / LatAm markets", sent: 148, opened: 92, replied: 24, goal: "Add ICP ≥ 5 companies to CRM", color: "#34d399", icon: "globe", pct: 62 },
+  { name: "Competitor intelligence", sub: "Weekly Friday · 3-layer enrichment", sent: 26, opened: 26, replied: 0, goal: "Store intel in Supermemory", color: "#f472b6", icon: "brain", pct: 100 }
+];
+
+const REPLIES = [
+  { id: "RP-221", from: "Chiamaka Nwosu", company: "Lagos Freight & Logistics", channel: "Email", subject: "Re: FOB quote — 6×4 cargo trucks", cls: "quote_request", confidence: 98, time: "2 h ago", action: "Prepare revised quote → owner approval" },
+  { id: "RP-220", from: "Omar Al-Farsi", company: "Al Najd Trading Co.", channel: "WhatsApp", subject: "What is your best price for 10 units?", cls: "quote_request", confidence: 96, time: "35 min ago", action: "Lock conversation, draft quote for approval" },
+  { id: "RP-218", from: "Budi Santoso", company: "PT Sumber Jaya Motor", channel: "Telegram", subject: "Katalog lengkap bisa dikirim?", cls: "interested", confidence: 94, time: "4 h ago", action: "Send catalog + MOQ table, advance BANT" },
+  { id: "RP-216", from: "María Fernández", company: "Grupo Andino Import", channel: "Email", subject: "We need 200 units for Q1 pilot", cls: "hot_signal", confidence: 97, time: "5 h ago", action: "HOT: prioritize, notify owner immediately" },
+  { id: "RP-213", from: "Jose Ramirez", company: "Manila Construction Supply", channel: "WhatsApp", subject: "Is freight included?", cls: "objection", confidence: 89, time: "1 d ago", action: "Answer freight terms, keep warm" },
+  { id: "RP-209", from: "Unknown", company: "gmail.com user", channel: "Email", subject: "Unsubscribe please", cls: "unsubscribe", confidence: 99, time: "1 d ago", action: "Remove from sequence, move to nurture" },
+  { id: "RP-205", from: "Carlos Mendoza", company: "Lima Agro Exports", channel: "Email", subject: "Not now, maybe next quarter", cls: "not_interested", confidence: 91, time: "2 d ago", action: "Tag closed_lost, schedule 90d re-engage" },
+  { id: "RP-201", from: "Youssef Benali", company: "Casablanca Textiles", channel: "Email", subject: "Send me your GOTS certificates", cls: "interested", confidence: 93, time: "2 d ago", action: "Attach certificates, advance to Stage 4" }
+];
+
+const SKILLS = [
+  { name: "sdr-humanizer", cat: "Conversation", desc: "Natural message pacing (3–90s), cultural adaptation, anti-pattern rules for human-like B2B chat.", icon: "chat", status: "active" },
+  { name: "delivery-queue", cat: "Messaging", desc: "Async delivery with retry, message splitting, drip campaigns and timed follow-ups.", icon: "clock", status: "active" },
+  { name: "lead-discovery", cat: "Prospecting", desc: "AI-driven lead search with Jina, ICP evaluation and automatic CRM entry (ICP ≥ 5).", icon: "search", status: "active" },
+  { name: "quotation-generator", cat: "Commerce", desc: "PDF proforma invoices with letterhead, multi-language, FOB/CNF terms support.", icon: "tag", status: "active" },
+  { name: "chroma-memory", cat: "Memory", desc: "Per-turn vector storage with customer isolation, auto-tagging (quotes, commitments) and L4 snapshots.", icon: "layers", status: "active" },
+  { name: "supermemory", cat: "Memory", desc: "Semantic research storage — competitor intel, market insights, customer facts.", icon: "brain", status: "active" },
+  { name: "telegram-toolkit", cat: "Channel", desc: "Bot commands, inline keyboards, large-file handling and Telegram-first market strategies.", icon: "send", status: "active" },
+  { name: "graphify", cat: "Intelligence", desc: "Knowledge graph for product catalog, customer intelligence and market research.", icon: "globe", status: "idle" }
+];
+
+const MEMORY_LAYERS = [
+  { id: "L0", name: "Active Memory", engine: "OpenClaw sub-agent", mode: "mode: recent", desc: "Dedicated memory sub-agent runs before the main reply, injecting recent context. Enable via plugins.slots.contextEngine.", status: "active" },
+  { id: "L1", name: "MemOS", engine: "Structured memory", mode: "auto-recall", desc: "Auto-injects past memories at conversation start; auto-captures BANT, commitments and objections at turn end.", status: "active" },
+  { id: "L2", name: "Proactive Summary", engine: "Dual-threshold", mode: "50% save → 65% compress", desc: "Background key-fact save at 50% context, full compression at 65% via haiku-class model. Numbers and commitments preserved verbatim.", status: "active" },
+  { id: "L3", name: "ChromaDB", engine: "Per-turn vector store", mode: "recency-weighted", desc: "Every turn stored with customer_id isolation and auto-tagging. Semantic retrieval across sessions.", status: "active" },
+  { id: "L4", name: "CRM Snapshot", engine: "Daily disaster recovery", mode: "12:00 daily", desc: "Full pipeline snapshot to ChromaDB every day at 12:00. If any layer fails, L4 has the data.", status: "active" }
+];
+
+const ACTIVITY = [
+  { icon: "zap", cls: "b-amber", title: "Hot lead detected — <span class='hl'>Grupo Andino Import</span>", meta: "ICP 7.4 · BANT 3/4 · 200-unit Q1 pilot", time: "5 h ago" },
+  { icon: "check", cls: "b-green", title: "Quote approved & sent — <span class='hl'>Lagos Freight & Logistics</span>", meta: "6×4 cargo trucks · FOB Shanghai", time: "2 h ago" },
+  { icon: "chat", cls: "b-cyan", title: "Reply classified: quote_request — <span class='hl'>Al Najd Trading Co.</span>", meta: "98% confidence · WhatsApp", time: "35 min ago" },
+  { icon: "clock", cls: "b-pink", title: "Delivery queue flushed — 14 messages", meta: "3–90s human pacing · 2 channels", time: "1 h ago" },
+  { icon: "globe", cls: "b-accent", title: "Lead discovery round complete — Africa", meta: "9 companies added · avg ICP 6.1", time: "Today 10:00" },
+  { icon: "shield", cls: "b-green", title: "Memory health check passed", meta: "L1/L2/L3/L4 online · ChromaDB 128K vectors", time: "Today 14:00" }
+];
+
+const CHANNELS = [
+  { name: "WhatsApp", ic: "phone", cls: "b-green", status: "Connected · dmPolicy open", detail: "128 ms · 72h window OK", tone: "green" },
+  { name: "Telegram", ic: "send", cls: "b-green", status: "Connected · bot active", detail: "96 ms · 2 groups allowlisted", tone: "green" },
+  { name: "Email / Gmail", ic: "mail", cls: "b-cyan", status: "Synced · IMAP + SMTP", detail: "Last scan 18 min ago", tone: "cyan" },
+  { name: "Microsoft Teams", ic: "chat", cls: "b-gray", status: "Idle · handoff scan only", detail: "No mentions today", tone: "gray" }
+];
+
+const DOCTOR = [
+  { name: "SSH connectivity", ok: true, meta: "root@203.0.113.42 · 42 ms" },
+  { name: "Node.js & npm", ok: true, meta: "v22.11.0 / 10.9.0" },
+  { name: "OpenClaw CLI", ok: true, meta: "v2026.6.6" },
+  { name: "openclaw.json permissions", ok: true, meta: "600 · root" },
+  { name: "Workspace context files", ok: true, meta: "7/7 layers present" },
+  { name: "Local skills", ok: true, meta: "41 skills · b2b_trade profile" },
+  { name: "Gateway service", ok: true, meta: "active (systemd)" },
+  { name: "Gateway /health", ok: true, meta: "200 OK · port 18789" },
+  { name: "ChromaDB memory", ok: true, meta: "128,412 vectors · healthy" }
+];
+
+/* ── View registry ─────────────────────────────────────────── */
+const VIEWS = {
+  overview: { title: "Overview", crumb: "AITZAZ AI · Sara--OS B2B SDR Agent" },
+  leads: { title: "Leads", crumb: "Lead management · scoring · categorization" },
+  pipeline: { title: "Pipeline", crumb: "10-stage sales workflow" },
+  campaigns: { title: "Campaigns", crumb: "Automated outreach programs" },
+  outreach: { title: "Outreach", crumb: "Email sequences · delivery queue" },
+  replies: { title: "Replies", crumb: "Reply classification · hot-lead detection" },
+  memory: { title: "Memory", crumb: "4-layer anti-amnesia architecture" },
+  skills: { title: "Skills", crumb: "Extensible agent capabilities" },
+  system: { title: "System", crumb: "Deployment · health · configuration" }
+};
+
+function tierBadge(t) {
+  if (t === "hot") return '<span class="badge b-red"><span class="b-dot"></span>Hot</span>';
+  if (t === "warm") return '<span class="badge b-amber"><span class="b-dot"></span>Warm</span>';
+  return '<span class="badge b-gray"><span class="b-dot"></span>Cold</span>';
+}
+function statusBadge(s) {
+  const map = {
+    new: ["b-accent", "New"], contacted: ["b-cyan", "Contacted"], interested: ["b-cyan", "Interested"],
+    quote_sent: ["b-amber", "Quote sent"], negotiating: ["b-pink", "Negotiating"],
+    email_sent: ["b-gray", "Email sent"], email_replied: ["b-cyan", "Email replied"],
+    meeting_set: ["b-amber", "Meeting set"], nurture: ["b-gray", "Nurture"],
+    closed_won: ["b-green", "Closed won"], closed_lost: ["b-gray", "Closed lost"]
+  };
+  const [c, l] = map[s] || ["b-gray", s];
+  return `<span class="badge ${c}">${l}</span>`;
+}
+function clsBadge(c) {
+  const map = {
+    quote_request: ["b-amber", "Quote request"], interested: ["b-cyan", "Interested"],
+    hot_signal: ["b-red", "Hot signal"], objection: ["b-pink", "Objection"],
+    unsubscribe: ["b-gray", "Unsubscribe"], not_interested: ["b-gray", "Not interested"]
+  };
+  const [cc, l] = map[c] || ["b-gray", c];
+  return `<span class="badge ${cc}">${l}</span>`;
+}
+function scoreBar(score, max) {
+  const pct = Math.round((score / max) * 100);
+  const tone = score >= 7 ? "green" : score >= 5 ? "amber" : "red";
+  return `<div class="score-row"><span class="score-num">${score.toFixed(1)}</span><div class="bar ${tone}"><i style="width:${pct}%"></i></div></div>`;
+}
+function avatar(name) {
+  const initials = name.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  return `<div class="avatar">${T.esc(initials)}</div>`;
+}
+
+/* ── Renderers ─────────────────────────────────────────────── */
+function renderOverview() {
+  const maxStage = Math.max(...STAGES.map(s => s.count));
+  const funnel = STAGES.map(s => `
+    <div class="funnel-row">
+      <span class="f-label">${s.n}. ${T.esc(s.name)}</span>
+      <div class="funnel-track">
+        <div class="funnel-fill" style="width:${Math.max(8, Math.round(s.count / maxStage * 100))}%;background:${s.color}">${T.fmt(s.count)}</div>
+      </div>
+      <span class="f-count">${T.fmt(s.count)}</span>
+    </div>`).join("");
+
+  const cronRows = CRON.map(c => `
+    <tr>
+      <td><div class="cell-main">${T.esc(c.name)}</div><div class="cell-sub">${T.esc(c.note)}</div></td>
+      <td class="muted mono">${T.esc(c.schedule)}</td>
+      <td class="muted">${T.esc(c.last)}</td>
+      <td>${c.status === "ok" ? '<span class="badge b-green"><span class="b-dot"></span>OK</span>' : c.status === "warn" ? '<span class="badge b-amber"><span class="b-dot"></span>Watch</span>' : '<span class="badge b-gray">Idle</span>'}</td>
+    </tr>`).join("");
+
+  const feed = ACTIVITY.map(a => `
+    <div class="feed-item">
+      <div class="feed-ic ${a.cls}">${ICONS[a.icon]}</div>
+      <div class="feed-body">
+        <div class="feed-title">${a.title}</div>
+        <div class="feed-meta">${T.esc(a.meta)} <span class="feed-time">${T.esc(a.time)}</span></div>
+      </div>
+    </div>`).join("");
+
+  const channels = CHANNELS.map(c => `
+    <div class="channel">
+      <div class="c-ic ${c.cls}">${ICONS[c.ic]}</div>
+      <div><div class="c-name">${T.esc(c.name)}</div><div class="c-status">${T.esc(c.status)}</div></div>
+      <div class="c-right">${T.esc(c.detail)}</div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Agent Overview</div>
+      <div class="section-sub">Live snapshot of the B2B SDR agent · updated ${T.now()}</div>
+    </div>
+    <div class="seg">
+      <button class="active">24h</button><button>7d</button><button>30d</button>
+    </div>
+  </div>
+
+  <div class="grid kpis mb-2">
+    <div class="card kpi"><div class="label">Active leads</div><div class="value">1,284</div><div class="delta up">▲ 8.2% vs last week</div></div>
+    <div class="card kpi"><div class="label">Hot leads</div><div class="value" style="color:var(--red)">37</div><div class="delta up">▲ 5 flagged today</div></div>
+    <div class="card kpi"><div class="label">Open pipeline value</div><div class="value">$482K</div><div class="delta up">▲ 12.4% conversion</div></div>
+    <div class="card kpi"><div class="label">Messages this week</div><div class="value">3,842</div><div class="delta">Across 3 channels</div></div>
+    <div class="card kpi"><div class="label">Quotes awaiting approval</div><div class="value" style="color:var(--amber)">4</div><div class="delta">2h lock timeout active</div></div>
+  </div>
+
+  <div class="grid cols-2 mb-2">
+    <div class="card">
+      <div class="card-head"><div class="icon">${ICONS.layers}</div><h3>Pipeline snapshot</h3><span class="hint">10 stages</span></div>
+      <div class="funnel">${funnel}</div>
+    </div>
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="icon green">${ICONS.zap}</div><h3>Channel health</h3><span class="hint">Gateway online</span></div>
+        <div class="grid" style="gap:9px">${channels}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card pad-0">
+      <div class="card-head" style="padding:16px 18px 0"><div class="icon cyan">${ICONS.clock}</div><h3>Automated pipeline checks</h3><span class="hint">14 cron jobs</span></div>
+      <div class="table-wrap mt-2">
+        <table class="tbl">
+          <thead><tr><th>Check</th><th>Schedule</th><th>Last run</th><th>Status</th></tr></thead>
+          <tbody>${cronRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="icon pink">${ICONS.chat}</div><h3>Recent activity</h3><span class="hint">Live feed</span></div>
+      <div class="feed">${feed}</div>
+    </div>
+  </div>`;
+}
+
+function renderLeads(query, tierFilter) {
+  query = (query || "").toLowerCase();
+  let list = LEADS.filter(l => {
+    const inQuery = !query || [l.company, l.contact, l.country, l.product, l.id, l.status].join(" ").toLowerCase().includes(query);
+    const inTier = !tierFilter || l.tier === tierFilter;
+    return inQuery && inTier;
+  });
+  const hot = LEADS.filter(l => l.tier === "hot").length;
+  const warm = LEADS.filter(l => l.tier === "warm").length;
+  const cold = LEADS.filter(l => l.tier === "cold").length;
+
+  const rows = list.map(l => `
+    <tr>
+      <td><div class="lead-cell">${avatar(l.contact)}<div><div class="cell-main">${T.esc(l.company)}</div><div class="cell-sub">${T.esc(l.id)} · ${T.esc(l.role)}</div></div></div></td>
+      <td><div class="cell-main"><span class="flag">${l.country.split(" ")[0]}</span> ${T.esc(l.country.split(" ").slice(1).join(" "))}</div><div class="cell-sub">${T.esc(l.lang)} · ${T.esc(l.channel)}</div></td>
+      <td><div class="cell-sub" style="color:var(--text-dim)">${T.esc(l.product)}</div></td>
+      <td>${scoreBar(l.icp, 10)}</td>
+      <td class="mono">${T.esc(l.bant)}</td>
+      <td>${tierBadge(l.tier)}</td>
+      <td>${statusBadge(l.status)}</td>
+      <td class="muted">${T.esc(l.last)}</td>
+      <td><div class="cell-sub" style="max-width:150px">${T.esc(l.next)}</div></td>
+    </tr>`).join("");
+
+  const empty = list.length === 0 ? `
+    <div class="empty">
+      ${ICONS.search}
+      <b>No leads match your filter</b>
+      <p>Try a different search term or clear the tier filter to see the full lead pool.</p>
+      <button class="btn primary sm mt-2" onclick="window.__clearLeadFilters()">Clear filters</button>
+    </div>` : "";
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Lead Management</div>
+      <div class="section-sub">ICP scoring · BANT qualification · auto tiering</div>
+    </div>
+    <button class="btn primary">${ICONS.zap}<span>New lead</span></button>
+  </div>
+
+  <div class="grid kpis mb-2">
+    <div class="card kpi"><div class="label">Total leads</div><div class="value">${T.fmt(LEADS.length + 1270)}</div><div class="delta">${T.fmt(LEADS.length + 1270 - 1284)} added today</div></div>
+    <div class="card kpi"><div class="label">Hot</div><div class="value" style="color:var(--red)">${hot}</div><div class="delta up">BANT ≥ 3/4 · ICP ≥ 7</div></div>
+    <div class="card kpi"><div class="label">Warm</div><div class="value" style="color:var(--amber)">${warm}</div><div class="delta">BANT 2/4 · ICP 4–6</div></div>
+    <div class="card kpi"><div class="label">Cold / nurture</div><div class="value">${cold}</div><div class="delta">14-day nurture cycle</div></div>
+  </div>
+
+  <div class="card pad-0">
+    <div class="row-between" style="padding:14px 16px;border-bottom:1px solid var(--border-soft)">
+      <div class="seg" id="tierSeg">
+        <button class="active" data-tier="">All</button>
+        <button data-tier="hot">Hot</button>
+        <button data-tier="warm">Warm</button>
+        <button data-tier="cold">Cold</button>
+      </div>
+      <span class="mini-note">${list.length} of ${LEADS.length} shown · demo data</span>
+    </div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Company</th><th>Market</th><th>Product interest</th><th>ICP score</th><th>BANT</th><th>Tier</th><th>Status</th><th>Last contact</th><th>Next action</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${empty}
+    </div>
+  </div>`;
+}
+
+function renderPipeline() {
+  const maxStage = Math.max(...STAGES.map(s => s.count));
+  const cards = STAGES.map((s, i) => `
+    <div class="card stage-card">
+      <div class="s-num">STAGE ${String(s.n).padStart(2, "0")}</div>
+      <div class="s-name">${T.esc(s.name)}</div>
+      <div class="s-desc">${T.esc(s.desc)}</div>
+      <div class="row-between">
+        <div class="score-row"><div class="bar" style="flex:1"><i style="width:${Math.round(s.count / maxStage * 100)}%;background:${s.color}"></i></div></div>
+        <span class="score-num" style="width:auto">${T.fmt(s.count)}</span>
+      </div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Sales Pipeline</div>
+      <div class="section-sub">Full-pipeline automation — lead capture to closing</div>
+    </div>
+    <span class="status-pill"><span class="pulse-dot" style="background:var(--green)"></span>Stages flowing normally</span>
+  </div>
+  <div class="grid cols-3">${cards}</div>`;
+}
+
+function renderCampaigns() {
+  const cards = CAMPAIGNS.map(c => `
+    <div class="card campaign">
+      <div class="c-head">
+        <div class="skill-ic" style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:${c.color}22;color:${c.color}">${ICONS[c.icon]}</div>
+        <div><div class="c-name">${T.esc(c.name)}</div><div class="c-sub">${T.esc(c.sub)}</div></div>
+      </div>
+      <div class="camp-stats">
+        <div><b>${T.fmt(c.sent)}</b><span>Sent</span></div>
+        <div><b>${T.fmt(c.opened)}</b><span>Opened</span></div>
+        <div><b>${T.fmt(c.replied)}</b><span>Replies</span></div>
+      </div>
+      <div class="score-row"><div class="bar" style="flex:1"><i style="width:${c.pct}%;background:${c.color}"></i></div><span class="score-num" style="width:auto;color:var(--text-dim)">${c.pct}%</span></div>
+      <div class="mini-note">Goal: ${T.esc(c.goal)}</div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Campaigns</div>
+      <div class="section-sub">Automated programs running on the delivery queue &amp; cron</div>
+    </div>
+    <button class="btn primary">${ICONS.zap}<span>New campaign</span></button>
+  </div>
+  <div class="grid cols-2">${cards}</div>`;
+}
+
+function renderOutreach() {
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Outreach</div>
+      <div class="section-sub">Email sequences · delivery pacing · timezone-aware sending</div>
+    </div>
+    <span class="status-pill"><span class="pulse-dot" style="background:var(--green)"></span>Queue draining normally</span>
+  </div>
+
+  <div class="grid cols-2 mb-2">
+    <div class="card">
+      <div class="card-head"><div class="icon">${ICONS.mail}</div><h3>Cold email sequence</h3><span class="hint">Day 1 / 3 / 7 / 14</span></div>
+      <div class="timeline">
+        <div class="tl-item done">
+          <div class="t-title">Day 1 — Personalized intro ${'<span class="badge b-green">Sent</span>'}</div>
+          <div class="t-body">ICP-matched opener referencing company website research (Jina enrichment).</div>
+        </div>
+        <div class="tl-item done">
+          <div class="t-title">Day 3 — Follow-up #2 ${'<span class="badge b-cyan">Sent</span>'}</div>
+          <div class="t-body">Value-add angle: relevant catalog excerpt, no generic template language.</div>
+        </div>
+        <div class="tl-item now">
+          <div class="t-title">Day 7 — Follow-up #3 ${'<span class="badge b-amber">In flight</span>'}</div>
+          <div class="t-body">Case study or MOQ table; auto-switch to WhatsApp if 72h window allows.</div>
+        </div>
+        <div class="tl-item">
+          <div class="t-title">Day 14 — Final follow-up</div>
+          <div class="t-body">Last touch, then move to nurture pool with 14-day cadence.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="icon green">${ICONS.clock}</div><h3>Delivery queue</h3><span class="hint">sdr-humanizer pacing</span></div>
+        <div class="kv">
+          <dt>Queued messages</dt><dd>23</dd>
+          <dt>Human pacing</dt><dd>3–90 s randomized delays</dd>
+          <dt>Message splitting</dt><dd>Enabled (≤ 4 segments)</dd>
+          <dt>Retries</dt><dd>3 with exponential backoff</dd>
+          <dt>Next flush</dt><dd>In 12 s · 5 messages</dd>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="icon amber">${ICONS.globe}</div><h3>Timezone-aware sending</h3><span class="hint">7 market maps</span></div>
+        <div class="kv">
+          <dt>Africa (GMT+0–3)</dt><dd>08:00–17:00 local</dd>
+          <dt>Middle East (GMT+3–4)</dt><dd>09:00–18:00 local</dd>
+          <dt>SEA (GMT+7–8)</dt><dd>09:00–18:00 local</dd>
+          <dt>LatAm (GMT−3–5)</dt><dd>09:00–18:00 local</dd>
+          <dt>Europe / NA</dt><dd>09:00–17:00 local</dd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="icon red">${ICONS.phone}</div><h3>WhatsApp 72-hour window</h3><span class="hint">auto-switch protection</span></div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>Lead</th><th>Last customer message</th><th>Window closes</th><th>Policy</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><div class="lead-cell">${avatar("Omar Al-Farsi")}<div><div class="cell-main">Al Najd Trading Co.</div><div class="cell-sub">LD-1042</div></div></div></td><td>2 h ago</td><td class="muted">70 h remaining</td><td>${'<span class="badge b-green">In window</span>'}</td><td class="cell-sub">Continue on WhatsApp</td></tr>
+          <tr><td><div class="lead-cell">${avatar("Jose Ramirez")}<div><div class="cell-main">Manila Construction Supply</div><div class="cell-sub">LD-1009</div></div></div></td><td>2 d ago</td><td class="muted" style="color:var(--amber)">22 h remaining</td><td>${'<span class="badge b-amber">Closing</span>'}</td><td class="cell-sub">Queue before expiry</td></tr>
+          <tr><td><div class="lead-cell">${avatar("Wanjiku Kamau")}<div><div class="cell-main">Nairobi Auto Spares</div><div class="cell-sub">LD-1003</div></div></div></td><td>5 d ago</td><td class="muted" style="color:var(--red)">Expired</td><td>${'<span class="badge b-gray">Expired</span>'}</td><td class="cell-sub">Switched to Telegram · auto</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderReplies() {
+  const rows = REPLIES.map(r => `
+    <tr>
+      <td><div class="lead-cell">${avatar(r.from)}<div><div class="cell-main">${T.esc(r.from)}</div><div class="cell-sub">${T.esc(r.company)}</div></div></div></td>
+      <td><div class="cell-main">${T.esc(r.subject)}</div><div class="cell-sub">${T.esc(r.channel)} · ${T.esc(r.id)}</div></td>
+      <td>${clsBadge(r.cls)}</td>
+      <td><div class="score-row"><span class="score-num" style="width:34px">${r.confidence}%</span><div class="bar cyan" style="flex:1"><i style="width:${r.confidence}%"></i></div></div></td>
+      <td class="muted">${T.esc(r.time)}</td>
+      <td><div class="cell-sub" style="max-width:190px">${T.esc(r.action)}</div></td>
+    </tr>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Reply Classification</div>
+      <div class="section-sub">Inbound routed, classified and actioned automatically</div>
+    </div>
+    <span class="status-pill"><span class="pulse-dot" style="background:var(--red)"></span>2 hot signals today</span>
+  </div>
+
+  <div class="grid kpis mb-2">
+    <div class="card kpi"><div class="label">Classified today</div><div class="value">128</div><div class="delta">99.2% auto-classified</div></div>
+    <div class="card kpi"><div class="label">Hot signals</div><div class="value" style="color:var(--red)">2</div><div class="delta up">Owner notified instantly</div></div>
+    <div class="card kpi"><div class="label">Quote requests</div><div class="value" style="color:var(--amber)">14</div><div class="delta">→ approval queue</div></div>
+    <div class="card kpi"><div class="label">Avg response time</div><div class="value">3.2 min</div><div class="delta up">▼ 1.1 min vs last week</div></div>
+  </div>
+
+  <div class="card pad-0">
+    <div class="card-head" style="padding:16px 18px 0"><div class="icon cyan">${ICONS.inbox}</div><h3>Inbox — unprocessed queue</h3><span class="hint">8 of 128</span></div>
+    <div class="table-wrap mt-2">
+      <table class="tbl">
+        <thead><tr><th>Sender</th><th>Message</th><th>Classification</th><th>Confidence</th><th>Received</th><th>Recommended action</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderMemory() {
+  const layers = MEMORY_LAYERS.map(m => `
+    <div class="card mem-layer">
+      <div class="mem-badge">${m.id}</div>
+      <div style="flex:1;min-width:0">
+        <div class="m-name">${T.esc(m.name)} <span class="tag">${T.esc(m.engine)}</span> <span class="badge b-green"><span class="b-dot"></span>Online</span></div>
+        <div class="m-desc">${T.esc(m.desc)}</div>
+        <div class="m-desc mono" style="margin-top:6px;color:var(--text-faint)">${T.esc(m.mode)}</div>
+      </div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Memory Architecture</div>
+      <div class="section-sub">4-layer anti-amnesia — never forget a customer, quote or commitment</div>
+    </div>
+    <span class="status-pill"><span class="pulse-dot" style="background:var(--green)"></span>All layers healthy</span>
+  </div>
+
+  <div class="grid cols-2 mb-2">
+    ${layers}
+    <div class="card">
+      <div class="card-head"><div class="icon amber">${ICONS.shield}</div><h3>Fallback chain</h3><span class="hint">graceful degradation</span></div>
+      <div class="list-check">
+        <div class="check-item ok">${ICONS.check}<div>L1 MemOS down → read CRM + <span class="mono">chroma:recall</span>, inform owner</div></div>
+        <div class="check-item ok">${ICONS.check}<div>L3 ChromaDB down → operate on L1, log to Supermemory</div></div>
+        <div class="check-item ok">${ICONS.check}<div>L1 + L3 down → CRM as source of truth, brief recap from returning customers</div></div>
+        <div class="check-item ok">${ICONS.check}<div>All layers down → stateless mode, transparent with owner</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid cols-3">
+    <div class="card kpi"><div class="label">ChromaDB vectors</div><div class="value">128,412</div><div class="delta">up ▲ 3,102 today</div></div>
+    <div class="card kpi"><div class="label">Customer-isolated stores</div><div class="value">1,109</div><div class="delta">per customer_id</div></div>
+    <div class="card kpi"><div class="label">L4 snapshots kept</div><div class="value">14</div><div class="delta">last: today 12:00</div></div>
+  </div>`;
+}
+
+function renderSkills() {
+  const cards = SKILLS.map(s => `
+    <div class="card skill-card">
+      <div class="s-head">
+        <div class="s-ic">${ICONS[s.icon]}</div>
+        <div><div class="s-name">${T.esc(s.name)}</div><div class="s-cat">${T.esc(s.cat)}</div></div>
+        <span style="margin-left:auto">${s.status === "active" ? '<span class="badge b-green"><span class="b-dot"></span>Active</span>' : '<span class="badge b-gray">Idle</span>'}</span>
+      </div>
+      <div class="s-desc">${T.esc(s.desc)}</div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">Agent Skills</div>
+      <div class="section-sub">8 bundled skills · b2b_trade profile (41 installed)</div>
+    </div>
+    <button class="btn ghost">${ICONS.tag}<span>Manage profiles</span></button>
+  </div>
+  <div class="grid cols-3">${cards}</div>`;
+}
+
+function renderSystem() {
+  const checks = DOCTOR.map(d => `
+    <div class="check-item ${d.ok ? "ok" : "fail"}">${d.ok ? ICONS.check : ICONS.x}
+      <div>${T.esc(d.name)}<div class="mini-note">${T.esc(d.meta)}</div></div>
+    </div>`).join("");
+
+  return `
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-title">System</div>
+      <div class="section-sub">Deployment health · configuration · security posture</div>
+    </div>
+    <span class="status-pill"><span class="pulse-dot" style="background:var(--green)"></span>All systems operational</span>
+  </div>
+
+  <div class="grid cols-2 mb-2">
+    <div class="card">
+      <div class="card-head"><div class="icon green">${ICONS.server}</div><h3>Deployment</h3><span class="hint">doctor.sh</span></div>
+      <div class="kv">
+        <dt>Server</dt><dd>203.0.113.42 (Ubuntu 22.04)</dd>
+        <dt>Gateway</dt><dd>ws://203.0.113.42:18789</dd>
+        <dt>Skill profile</dt><dd>b2b_trade · 41 skills</dd>
+        <dt>IP isolation</dt><dd>Enabled · 3 tenants (wireproxy :40001+)</dd>
+        <dt>Memory</dt><dd>ChromaDB + chroma-memory skill</dd>
+        <dt>Backup</dt><dd>Config snapshot before every deploy</dd>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="icon cyan">${ICONS.server}</div><h3>Configuration</h3><span class="hint">deploy/config.sh</span></div>
+      <div class="kv">
+        <dt>Primary model</dt><dd>deepseek / deepseek-v4-flash · 1M ctx</dd>
+        <dt>Fallback model</dt><dd>deepseek-v4-pro (reasoning)</dd>
+        <dt>WhatsApp</dt><dd>Enabled · dmPolicy open</dd>
+        <dt>Telegram</dt><dd>Enabled · bot active</dd>
+        <dt>CRM</dt><dd>Google Sheets · leads</dd>
+        <dt>Admin whitelist</dt><dd>2 numbers · owner + manager</dd>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="card-head"><div class="icon green">${ICONS.check}</div><h3>Health checks</h3><span class="hint">all passing</span></div>
+      <div class="list-check">${checks}</div>
+    </div>
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <div class="card-head"><div class="icon amber">${ICONS.shield}</div><h3>Security posture</h3></div>
+        <div class="list-check">
+          <div class="check-item ok">${ICONS.check}<div>Gateway token auto-generated, 600 perms on openclaw.json</div></div>
+          <div class="check-item ok">${ICONS.check}<div>GATEWAY_BIND=lan · set to loopback to disable remote dashboard</div></div>
+          <div class="check-item ok">${ICONS.check}<div>Pricing approval gates — quotes never sent without owner</div></div>
+          <div class="check-item ok">${ICONS.check}<div>Exec approvals fail-closed · plugin allowlists preserved</div></div>
+          <div class="check-item ok">${ICONS.check}<div>Customer data confidential — GDPR &amp; sanctions rules in SOUL.md</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="icon pink">${ICONS.zap}</div><h3>Quick links</h3></div>
+        <div class="list-check">
+          <div class="check-item ok">${ICONS.send}<div>OpenClaw gateway — <span class="mono">openclaw gateway status</span></div></div>
+          <div class="check-item ok">${ICONS.clock}<div>Validate template — <span class="mono">npm test</span></div></div>
+          <div class="check-item ok">${ICONS.globe}<div>Docs — <span class="mono">README.md · docs/</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── App shell ─────────────────────────────────────────────── */
+const renderers = {
+  overview: renderOverview,
+  leads: () => renderLeads(window.__leadQuery || "", window.__leadTier || ""),
+  pipeline: renderPipeline,
+  campaigns: renderCampaigns,
+  outreach: renderOutreach,
+  replies: renderReplies,
+  memory: renderMemory,
+  skills: renderSkills,
+  system: renderSystem
+};
+
+let currentView = "overview";
+
+function skeleton(view) {
+  const kpis = '<div class="grid kpis mb-2">' + Array.from({ length: 4 }, () => '<div class="sk-kpi skeleton"></div>').join("") + "</div>";
+  const card = `
+    <div class="card skeleton" style="height:${view === "leads" ? 420 : view === "overview" ? 320 : 300}px">
+      ${Array.from({ length: 9 }, () => '<div class="sk-line" style="width:' + (55 + Math.random() * 40 | 0) + '%"></div>').join("")}
+    </div>`;
+  return kpis + card;
+}
+
+function navigate(view) {
+  if (!renderers[view]) view = "overview";
+  currentView = view;
+  const content = T.$("#content");
+  content.innerHTML = '<div class="row-between mb-2"><div class="section-title skeleton" style="width:220px;height:22px;background:var(--panel-3);border-radius:8px"></div></div>' + skeleton(view);
+  T.$("#topTitle").textContent = VIEWS[view].title;
+  T.$("#topCrumb").textContent = VIEWS[view].crumb;
+  T.$$("#nav .nav-item").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  closeDrawer();
+  setTimeout(() => { content.innerHTML = renderers[view](); bindView(view); window.scrollTo({ top: 0 }); }, 260);
+}
+
+function bindView(view) {
+  const seg = T.$("#tierSeg");
+  if (seg) T.$$("button", seg).forEach(b => b.addEventListener("click", () => {
+    T.$$("button", seg).forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    window.__leadTier = b.dataset.tier || "";
+    T.$("#content").innerHTML = renderers.leads(window.__leadQuery || "", window.__leadTier);
+    bindView("leads");
+  }));
+}
+
+function closeDrawer() {
+  T.$("#sidebar").classList.remove("open");
+  T.$("#overlay").classList.remove("show");
+}
+
+/* ── Wiring ────────────────────────────────────────────────── */
+T.$$("#nav .nav-item").forEach(b => b.addEventListener("click", () => navigate(b.dataset.view)));
+T.$("#menuBtn").addEventListener("click", () => {
+  T.$("#sidebar").classList.add("open");
+  T.$("#overlay").classList.add("show");
+});
+T.$("#overlay").addEventListener("click", closeDrawer);
+T.$("#refreshBtn").addEventListener("click", () => {
+  const b = T.$("#refreshBtn");
+  b.style.opacity = ".6";
+  setTimeout(() => { navigate(currentView); b.style.opacity = "1"; }, 350);
+});
+T.$("#globalSearch").addEventListener("input", e => {
+  window.__leadQuery = e.target.value;
+  if (currentView === "leads") {
+    T.$("#content").innerHTML = renderers.leads(window.__leadQuery, window.__leadTier || "");
+    bindView("leads");
+  }
+});
+window.__clearLeadFilters = () => {
+  window.__leadQuery = ""; window.__leadTier = "";
+  T.$("#globalSearch").value = "";
+  T.$("#content").innerHTML = renderers.leads("", "");
+  bindView("leads");
+};
+
+navigate("overview");
+</script>
+</body>
+</html>
