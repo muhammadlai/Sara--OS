@@ -1,0 +1,18 @@
+{
+  "version": "v2026.4.21",
+  "language": "zh",
+  "title": "OpenClaw v2026.4.21：默认启用 gpt-image-2、安全加固与 Slack 线程路由修复",
+  "slug": "openclaw-v2026-4-21-release-zh",
+  "description": "OpenClaw v2026.4.21 将图片生成默认升级为 gpt-image-2（支持4K分辨率），加固所有者指令权限验证，修复 Slack 消息线程路由与插件依赖问题，B2B 销售 Agent 建议立即升级。",
+  "sourceUrl": "https://pulseagent.io/blog/openclaw-v2026-4-21-release-zh",
+  "author": "PulseAgent",
+  "publishedAt": "2026-04-22",
+  "blogApiResponse": {
+    "success": true,
+    "postId": "18d3c6da-e936-4925-ae21-7d5b57272ca8",
+    "url": "https://pulseagent.io/blog/openclaw-v2026-4-21-release-zh",
+    "action": "created"
+  },
+  "wechatStatus": "FAILED — 40125 invalid appsecret (6th consecutive failure; rid: 69e85ad3-6d9abc5c-2100aed9)",
+  "content": "# OpenClaw v2026.4.21：默认启用 gpt-image-2、安全加固与 Slack 线程路由修复\n\n2026年4月22日，OpenClaw 正式发布 `v2026.4.21`——将默认图片生成模型升级为 `gpt-image-2`，加固了所有者级指令的权限校验，并修复了 Slack 消息错误路由 Bug。\n\n## 图片生成默认切换至 gpt-image-2\n\nOpenClaw 内置图片生成能力现已默认使用 `gpt-image-2`，新增 2K 和 4K 分辨率尺寸提示支持。对于将 AI 图片生成用于产品目录或营销素材的 B2B 出口企业，这是一次直接的质量升级。\n\n> OpenClaw v2026.4.21 将 gpt-image-2 默认分辨率上限提升至 4K。\n\n## 安全加固：所有者指令需验证所有者身份\n\n本次修复关闭了一个权限提升漏洞：所有者级指令现在要求经过所有者身份验证。对于运行多操作员部署的 B2B 团队，操作员级 Agent 将无法意外触发所有者级指令。\n\n## Slack 消息线程路由修复\n\n出站 Slack 消息现已正确保留线程别名，消息将始终路由至预期线程。\n\n## 升级\n\n```\ncurl -fsSL https://raw.githubusercontent.com/iPythoning/b2b-sdr-agent-template/main/install.sh | bash\n```\n\n免费体验 PulseAgent B2B SDR Agent：https://pulseagent.io/app/login?ref=blog&utm_source=blog&utm_medium=release-post&utm_campaign=openclaw-v2026.4.21"
+}
