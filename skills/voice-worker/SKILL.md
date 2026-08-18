@@ -49,6 +49,8 @@ Example text that then goes to TTS:
 
 ## Tool: `voice.speak`
 
+From the **git repository root** (`git rev-parse --show-toplevel`), not from `$HOME`:
+
 ```bash
 node skills/voice-worker/voice-worker.mjs speak \
   --text "Sure, happy to. I can send you a quick voice introduction." \

@@ -14,6 +14,10 @@
     "test:voice": "node --test skills/voice-worker/test/voice-worker.test.mjs",
     "dashboard:data": "node scripts/build-dashboard-data.mjs",
     "dashboard": "node scripts/build-dashboard-data.mjs && echo 'Open dashboard/index.html in a browser (or serve with any static file server).'",
+    "voice": "node scripts/aitzaz-voice.mjs",
+    "voice:health": "node scripts/aitzaz-voice.mjs health",
+    "voice:bind": "node scripts/aitzaz-voice.mjs bind",
+    "voice:speak": "node scripts/aitzaz-voice.mjs speak --text \"Sure, happy to.\" --channel local --intro",
     "voice:center": "node skills/voice-worker/voice-center.mjs"
   }
 }

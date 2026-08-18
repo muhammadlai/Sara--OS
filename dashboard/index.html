@@ -237,10 +237,10 @@ function ready(D){
   const voice = `
   <section id="voice"><div class="panel">${H('Voice Center', liveNote)}
     <div class="grid g4">
-      <div class="stat"><div class="k ${stClass}">${esc(V.worker_status || 'CONFIGURED')}</div><div class="l">Voice Worker</div></div>
-      <div class="stat"><div class="k">${esc(V.profile?.name || 'Aitzaz')}</div><div class="l">Voice Profile</div></div>
-      <div class="stat"><div class="k ${V.profile?.bound ? 'ok' : 'warn'}">${V.profile?.bound ? 'BOUND' : 'UNBOUND'}</div><div class="l">Voicebox ID</div></div>
-      <div class="stat"><div class="k ${V.voicebox?.reachable ? 'ok' : 'warn'}">${V.voicebox?.reachable ? 'UP' : 'OFFLINE'}</div><div class="l">Voicebox</div></div>
+      <div class="stat"><div class="k ${V.worker_status === 'ERROR' ? 'bad' : 'ok'}">${esc(V.worker_status || 'READY')}</div><div class="l">Voice Worker</div></div>
+      <div class="stat"><div class="k ${V.profile?.bound ? 'ok' : 'warn'}">${esc(V.profile_status || V.profile?.label || (V.profile?.bound ? 'Aitzaz' : 'NOT CONFIGURED'))}</div><div class="l">Voice Profile</div></div>
+      <div class="stat"><div class="k ${V.voicebox?.reachable ? 'ok' : 'warn'}">${esc(V.voicebox_status || (V.voicebox?.reachable ? 'CONNECTED' : 'DISCONNECTED'))}</div><div class="l">Voicebox</div></div>
+      <div class="stat"><div class="k ${V.last_action?.verified ? 'ok' : 'warn'}">${esc(V.last_action?.phase || 'NONE')}</div><div class="l">Last Generation</div></div>
     </div>
     <div class="grid g2" style="margin-top:14px">
       <div class="card">
@@ -252,10 +252,11 @@ function ready(D){
         <span class="tag">workspace/voice.yaml</span>
       </div>
       <div class="card">
-        <h3>Last action</h3>
-        <p>${esc(V.last_action?.phase || 'none')}<br>
+        <h3>Last generation</h3>
+        <p>Phase: ${esc(V.last_action?.phase || 'none')}<br>
         Channel: ${esc(V.last_action?.channel || '—')}<br>
-        Verified: ${V.last_action?.verified ? 'YES' : 'NO'}</p>
+        Verified: ${V.last_action?.verified ? 'YES' : 'NO'}<br>
+        When: ${esc(V.last_action?.updated_at || 'no successful generation recorded')}</p>
         <span class="tag">${esc(V.last_action?.id || 'no generations on this host')}</span>
       </div>
     </div>
@@ -361,7 +362,22 @@ function ready(D){
   </div></section>`;
 
   document.getElementById('main').innerHTML =
-    sys + brain + agents + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+    sys + brain + agents + voice + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+
+  document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const act = btn.getAttribute('data-act');
+    try {
+      const r = await fetch(`/api/voice/jobs/${encodeURIComponent(id)}/${act}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      location.reload();
+    } catch {
+      btn.textContent = 'Needs Voice Center';
+      btn.disabled = true;
+    }
+  });
 }
 
 async function boot(){
@@ -376,7 +392,9 @@ async function boot(){
       D.voice = {
         ...(D.voice || {}),
         live: true,
-        worker_status: live.status,
+        worker_status: live.worker_status || 'READY',
+        voicebox_status: live.voicebox_status || (live.voicebox?.reachable ? 'CONNECTED' : 'DISCONNECTED'),
+        profile_status: live.profile_status || (live.profile?.bound ? 'Aitzaz' : 'NOT CONFIGURED'),
         profile: {
           name: live.profile?.name,
           owner: live.profile?.owner || 'Aitzaz',
@@ -384,6 +402,7 @@ async function boot(){
           bound: live.profile?.bound,
           consent_confirmed: live.profile?.consent_confirmed,
           language: 'en',
+          label: live.profile?.label,
         },
         voicebox: live.voicebox,
         engines: live.engines,

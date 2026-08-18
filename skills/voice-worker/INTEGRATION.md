@@ -1,97 +1,177 @@
-# Voicebox integration notes (inspected, not vendored)
+# Voice Worker — runbook (AITZAZ AI 2070)
 
 Voicebox: https://github.com/jamiepine/voicebox.git  
-Inspected: README, CHANGELOG 0.5.0, `backend/models.py`, `docs/PROJECT_STATUS.md`.
+This repository does **not** vendor Voicebox. Integration is **REST** via `VoiceService`.
 
-AITZAZ AI 2070 does **not** vendor Voicebox source. Voicebox stays a local companion process.
+## 0. Actual paths
 
-## Where it plugs in
-
-This repository is an OpenClaw 7-layer workspace + local skills. There is no separate application to create.
-
-| Layer | File | Role |
-|-------|------|------|
-| Main Brain | `workspace/AGENTS.md` | Decides TEXT vs VOICE after intent |
-| Conversation | `workspace/AGENTS.md` + `intent.mjs` | Classifies `VOICE_REQUEST` |
-| Voice Worker | `skills/voice-worker/` | Approval, generate, verify, deliver plan |
-| VoiceService | `skills/voice-worker/voice-service.mjs` | Only module that talks to Voicebox |
-| Config | `workspace/voice.yaml` | Authorized Aitzaz profile (no fake id) |
-| Dashboard | `dashboard/` + Voice Center | Status, jobs, approval |
-| Memory | job JSON under `$OPENCLAW_HOME/voice/` | Metadata, not raw samples |
-
-Existing SDR skills are unchanged. Voice Worker is an additional capability.
-
-## REST vs MCP
-
-**REST is the right fit for this architecture.**
-
-Voicebox ships both:
-
-- MCP at `http://127.0.0.1:17493/mcp` — `voicebox.speak`, `transcribe`, `list_captures`, `list_profiles`
-- REST `POST /speak` — documented as the wrapper for anything that is not MCP-native (scripts, ACP, A2A)
-
-AITZAZ skills run as Node CLI from OpenClaw, the same pattern as `chroma.mjs`. Adding an MCP client would add a transport we do not otherwise use.
-
-`X-Voicebox-Client-Id: aitzaz-ai-2070` is sent on every call so Voicebox can bind this worker in **Settings → MCP**.
-
-## Voicebox API actually used
-
-| Method | Path | Why |
-|--------|------|-----|
-| GET | `/health` | Reachability, GPU, model loaded |
-| GET | `/profiles` | Real profile ids / names |
-| GET | `/models/status` | Available engines |
-| POST | `/speak` | Agent speech (`text`, `profile`, `language`, `personality`) |
-| POST | `/generate` | When emotion/speed need `instruct` (not on SpeakRequest) |
-| GET | `/history/{id}/export-audio` | Pull WAV locally for validation |
-| GET | `/history` | Recent generations for Voice Center |
-
-`SpeakRequest` fields (real): `text`, `profile`, `engine`, `personality`, `language`.  
-There is **no** first-class `speed` or `emotion` field. VoiceService maps those to `instruct` on `/generate`.
-
-`GenerationResponse` fields (real): `id`, `profile_id`, `text`, `language`, `audio_path`, `duration`, `engine`, `status`, `error`, …
-
-HTTP **202** = model still downloading. That is **not** success.
-
-## What we reuse from Voicebox
-
-- Local TTS engines and cloned-voice profiles
-- `/speak` agent path + optional personality rewrite
-- Profile CRUD already in the Voicebox app (sample upload stays there)
-
-What we do **not** copy: frontend, Tauri shell, engine backends, SQLite schema.
-
-## Dependencies
-
-AITZAZ side: Node.js 18+ only (`fetch`). No extra npm packages.
-
-Voicebox side (their requirements):
-
-- Voicebox desktop app **or** `just dev` from their repo
-- Python 3.11+, Bun, Rust (if building from source)
-- Hardware: Apple Silicon MLX, NVIDIA CUDA, AMD ROCm, Intel Arc, DirectML, or CPU
-- Default bind: `127.0.0.1:17493`
-- Models downloaded in-app (Qwen3-TTS, Whisper, optional local Qwen3 LLM for personality)
-
-## What can be tested locally without Voicebox
+The Voice Worker is **inside this git repository**, not under `$HOME/skills`.
 
 ```bash
-npm test
+pwd
+git rev-parse --show-toplevel
+# must print the AITZAZ AI 2070 repo (this checkout), e.g.
+#   /home/user/Sara--OS
+#   or whatever folder you cloned muhammadlai/Sara--OS into
+
+ls skills/voice-worker/voice-worker.mjs
 ```
 
-Includes a mock Voicebox (`skills/voice-worker/test/voice-worker.test.mjs`) covering intent, approval, generate/validate, failure, unbound profile, and delivery confirmation rules.
+If you see:
 
-With a real Voicebox + an Aitzaz profile:
+```
+Error: Cannot find module '/home/aitzazji91/skills/voice-worker/voice-worker.mjs'
+```
+
+you ran Node from `$HOME`. That path is **not** the project.
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+node skills/voice-worker/voice-worker.mjs health
+# or, from the repo, path-safe:
+npm run voice:health
+node scripts/aitzaz-voice.mjs health
+```
+
+| Item | Path |
+|------|------|
+| Repo root | `git rev-parse --show-toplevel` |
+| Entry | `skills/voice-worker/voice-worker.mjs` |
+| VoiceService | `skills/voice-worker/voice-service.mjs` |
+| Config | `workspace/voice.yaml` (copy: `skills/voice-worker/voice.yaml`) |
+| Launcher | `scripts/aitzaz-voice.mjs` |
+| Tests | `skills/voice-worker/test/voice-worker.test.mjs` |
+
+There is no `/home/<user>/skills/` layout in this project.
+
+## 1. Start Voicebox
+
+On the machine that will generate speech:
+
+1. Install Voicebox from https://github.com/jamiepine/voicebox.git (desktop app or `just dev`).
+2. Confirm it listens on `http://127.0.0.1:17493` (default).
+3. In the Voicebox UI, create a profile **named `Aitzaz`** from **your own** voice sample.
+4. Do **not** put that sample in this git repo.
+
+## 2. Configure `VOICEBOX_BASE_URL`
+
+Do **not** put tokens in workspace `.env` (OpenClaw ignores runtime keys there). Use the shell or `deploy/config.sh`.
 
 ```bash
 export VOICEBOX_BASE_URL=http://127.0.0.1:17493
-node skills/voice-worker/voice-worker.mjs health
-node skills/voice-worker/voice-worker.mjs bind
-node skills/voice-worker/voice-worker.mjs speak \
-  --text "Sure, happy to. I can send you a quick voice introduction." \
-  --channel local --intro
+export VOICEBOX_CLIENT_ID=aitzaz-ai-2070
+# optional reverse-proxy bearer only:
+# export VOICEBOX_TOKEN=...
 ```
 
-## Hardware / runtime
+Defaults match Voicebox's local API if unset. Never commit `VOICEBOX_TOKEN`.
 
-Voice generation happens **on the Voicebox host**, not inside OpenClaw. The worker only needs HTTP access to that host. For production, run Voicebox on the same machine or a trusted LAN; do not expose `/speak` to the public internet without auth (`VOICEBOX_TOKEN` is supported if you put a reverse proxy in front).
+## 3. Health
+
+From the **repository root**:
+
+```bash
+node skills/voice-worker/voice-worker.mjs health
+# or
+npm run voice:health
+```
+
+**Connected (only if Voicebox answers `/health`):**
+
+```json
+{ "ok": true, "status": "CONNECTED", "reachable": true, "base_url": "http://127.0.0.1:17493" }
+```
+
+**Not connected:**
+
+```json
+{ "ok": false, "status": "DISCONNECTED", "reachable": false, "error": "Voicebox is not reachable at ..." }
+```
+
+Exit code `1` when unreachable. The CLI never prints CONNECTED unless the HTTP health check succeeds.
+
+## 4. Bind the Aitzaz profile
+
+```bash
+node skills/voice-worker/voice-worker.mjs bind
+# or
+npm run voice:bind
+```
+
+Bind calls Voicebox `GET /profiles` and matches name `Aitzaz`. It **does not invent** a profile id.
+
+- Success: `{ "status": "bound", "bound": true, "profile": { "id": "<real Voicebox id>", "name": "Aitzaz" } }`
+- Voicebox down: `{ "code": "VOICEBOX_UNREACHABLE", "bound": false }`
+- No Aitzaz profile yet: `{ "code": "VOICE_PROFILE_NOT_CONFIGURED", "bound": false }`
+
+Create the profile in Voicebox from your sample, then bind again.
+
+## 5. Local speak test
+
+Only after health is CONNECTED and bind is `bound`:
+
+```bash
+node skills/voice-worker/voice-worker.mjs speak --text "Sure, happy to." --channel local --intro
+# or
+npm run voice:speak
+```
+
+`--channel local` is a preview. It is **not** a client send.
+
+The JSON reports `generation_started`, `generation_status` (`completed` | `failed`), `voice_profile` / id, `audio` path, `verified`, `delivered: false`.  
+`verified: true` only after Voicebox returns a generation **and** audio validates.  
+`delivered` stays false unless a channel adapter later confirms.
+
+## 6. Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|--------|-----|
+| `Cannot find module '.../home/.../skills/voice-worker/...'` | Wrong cwd (`$HOME`) | `cd "$(git rev-parse --show-toplevel)"` |
+| `DISCONNECTED` | Voicebox not running or wrong URL | Start Voicebox; check `VOICEBOX_BASE_URL` |
+| HTTP 202 / `voicebox_model_not_ready` | TTS model still downloading | Wait in Voicebox UI; retry |
+| `VOICE_PROFILE_NOT_CONFIGURED` | No profile named Aitzaz | Create it in Voicebox from your sample |
+| `VOICE_GENERATION_FAILED` | TTS error or missing audio | Read `error`; do not tell the client it was sent |
+| LinkedIn / unknown channel | No authorized audio API | Worker returns the unsupported-delivery message |
+
+## 7. Delivery channels
+
+Generation ≠ delivery.
+
+| Channel | Authorized audio op | Delivery claim |
+|---------|---------------------|----------------|
+| Telegram | `sendVoice` | Only after Bot API ack |
+| WhatsApp | `sendVoiceNote` | Only after OpenClaw delivery receipt |
+| Email | `attachAudio` | Only after gws send ack |
+| Teams | `uploadFile` | Only after Graph ack |
+| local / web | `localPreview` | Never “sent” to a client |
+| LinkedIn | none | *Voice generation completed, but this channel does not support authorized audio delivery through the current integration.* |
+
+No browser hacks, cookie theft, CAPTCHA bypass, or unofficial automation.
+
+## 8. Security
+
+- Only Aitzaz's consented profile.
+- Do not clone client or third-party voices.
+- Do not commit WAV/MP3/OGG, `voice-samples/`, `VOICEBOX_TOKEN`, or generated audio.
+- Audio cache: `$OPENCLAW_HOME/voice/audio` (24h TTL). Outside git.
+- Do not expose `:17493` to the public internet without an authenticating proxy.
+
+## 9. Dashboard Voice Center
+
+```bash
+npm run voice:center
+```
+
+Shows **real** states only:
+
+- Voice Worker: `READY` / `ERROR` (module present)
+- Voicebox: `CONNECTED` / `DISCONNECTED` (live `/health`)
+- Profile: `Aitzaz` / `NOT CONFIGURED` (bind result)
+- Last generation: stored phase/timestamp, or `NONE`
+
+## 10. Tests (no live Voicebox required)
+
+```bash
+npm test
+npm run test:voice
+```

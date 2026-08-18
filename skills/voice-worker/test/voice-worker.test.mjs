@@ -11,6 +11,7 @@ import { canDeliverAudio, planDelivery, confirmDelivery, UNSUPPORTED_AUDIO_MESSA
 import { applyPersonalityLayer } from '../personality.mjs';
 import { createVoiceService, mapDeliveryHints, validateGeneration } from '../voice-service.mjs';
 import { createVoiceWorker, loadVoiceConfig } from '../voice-worker.mjs';
+import { isRepoRoot, resolveRepoRoot, voiceWorkerEntry } from '../paths.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SKILL = join(HERE, '..');
@@ -277,6 +278,64 @@ test('client outbound requires approval before generate', async () => {
   } finally {
     mock.server.close();
   }
+});
+
+test('repository root resolution does not use $HOME/skills', () => {
+  const root = resolveRepoRoot(SKILL);
+  assert.ok(root, 'repo root must be found from the skill directory');
+  assert.ok(isRepoRoot(root));
+  assert.ok(existsSync(join(root, 'skills/voice-worker/voice-worker.mjs')));
+  assert.ok(existsSync(join(root, 'package.json')));
+  assert.equal(voiceWorkerEntry(root), join(root, 'skills/voice-worker/voice-worker.mjs'));
+  assert.notEqual(root, process.env.HOME);
+  assert.ok(!root.endsWith('/skills'));
+});
+
+test('Voice Worker module loads from the repository-relative path', async () => {
+  const root = resolveRepoRoot(HERE);
+  const entry = voiceWorkerEntry(root);
+  const mod = await import(entry);
+  assert.equal(typeof mod.createVoiceWorker, 'function');
+  assert.equal(typeof mod.loadVoiceConfig, 'function');
+});
+
+test('bind reports VOICE_PROFILE_NOT_CONFIGURED when Voicebox has no Aitzaz profile', async () => {
+  const mock = await startMockVoicebox({ emptyProfiles: true });
+  try {
+    const home = mkdtempSync(join(tmpdir(), 'aitzaz-voice-'));
+    const worker = createVoiceWorker({ home, configPath: join(SKILL, 'voice.yaml'), baseUrl: mock.url });
+    const bound = await worker.bindProfile();
+    assert.equal(bound.bound, false);
+    assert.equal(bound.code, 'VOICE_PROFILE_NOT_CONFIGURED');
+    assert.equal(bound.error, 'VOICE_PROFILE_NOT_CONFIGURED');
+    assert.ok(!worker.store.getBinding()?.profile_id);
+  } finally {
+    mock.server.close();
+  }
+});
+
+test('successful bind stores the real Voicebox id only', async () => {
+  const mock = await startMockVoicebox();
+  try {
+    const home = mkdtempSync(join(tmpdir(), 'aitzaz-voice-'));
+    const worker = createVoiceWorker({ home, configPath: join(SKILL, 'voice.yaml'), baseUrl: mock.url });
+    const bound = await worker.bindProfile();
+    assert.equal(bound.bound, true);
+    assert.equal(bound.profile.id, 'vb_live_aitzaz_7f3a');
+    assert.equal(worker.store.getBinding().profile_id, 'vb_live_aitzaz_7f3a');
+  } finally {
+    mock.server.close();
+  }
+});
+
+test('no recordings or Voicebox tokens are committed in the skill', () => {
+  const root = resolveRepoRoot(HERE);
+  const gitignore = readFileSync(join(root, '.gitignore'), 'utf8');
+  assert.match(gitignore, /voice-samples/);
+  assert.match(gitignore, /\.wav/);
+  const trackedHint = readFileSync(join(root, 'skills/voice-worker/voice.yaml'), 'utf8');
+  assert.doesNotMatch(trackedHint, /sk-[A-Za-z0-9]{10,}/);
+  assert.doesNotMatch(trackedHint, /VOICEBOX_TOKEN:\s*["'][^"']+/);
 });
 
 test('status reports OFFLINE when Voicebox is down', async () => {

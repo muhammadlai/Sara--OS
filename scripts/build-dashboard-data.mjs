@@ -146,7 +146,9 @@ const voiceRuntime = (() => {
 })();
 const voice = {
   worker: 'VOICE WORKER',
-  worker_status: voiceRuntime?.status || (existsSync(join(ROOT, 'skills/voice-worker/voice-worker.mjs')) ? 'CONFIGURED' : 'MISSING'),
+  worker_status: existsSync(join(ROOT, 'skills/voice-worker/voice-worker.mjs')) ? 'READY' : 'ERROR',
+  voicebox_status: voiceRuntime?.voicebox?.reachable ? 'CONNECTED' : 'DISCONNECTED',
+  profile_status: voiceRuntime?.profile?.bound ? (voiceRuntime.profile.name || 'Aitzaz') : 'NOT CONFIGURED',
   profile: {
     name: voiceCfg.voice_profile?.name || 'Aitzaz',
     owner: voiceCfg.voice_profile?.owner || 'Aitzaz',

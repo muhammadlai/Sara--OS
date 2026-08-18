@@ -18,13 +18,16 @@ import { canDeliverAudio, getChannelCapability, planDelivery, confirmDelivery } 
 import { applyPersonalityLayer, ownerVoiceNotice } from './personality.mjs';
 import { createStore } from './store.mjs';
 import { parseSimpleYaml } from './yaml.mjs';
+import { resolveRepoRoot, usageHint, voiceWorkerEntry } from './paths.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolveRepoRoot(join(HERE, '..', '..'));
 
 export function loadVoiceConfig(explicitPath) {
   const candidates = [
     explicitPath,
     process.env.AITZAZ_VOICE_CONFIG,
+    REPO_ROOT && join(REPO_ROOT, 'workspace/voice.yaml'),
     join(process.cwd(), 'workspace/voice.yaml'),
     join(HERE, 'voice.yaml'),
   ].filter(Boolean);
@@ -81,9 +84,27 @@ export function createVoiceWorker(options = {}) {
   async function bindProfile() {
     const health = await service.health();
     if (!health.reachable) {
-      return { status: 'unbound', error: 'voicebox_unreachable', health };
+      return {
+        status: 'unbound',
+        bound: false,
+        code: 'VOICEBOX_UNREACHABLE',
+        error: 'VOICEBOX_UNREACHABLE',
+        instruction: `Voicebox is not reachable at ${service.baseUrl}. Start Voicebox locally, then retry bind.`,
+        health,
+      };
     }
-    const profiles = await service.listProfiles();
+    let profiles;
+    try {
+      profiles = await service.listProfiles();
+    } catch (err) {
+      return {
+        status: 'unbound',
+        bound: false,
+        code: 'VOICEBOX_UNREACHABLE',
+        error: err.message,
+        health,
+      };
+    }
     const resolved = service.resolveAuthorizedProfile(profiles, authorizedMeta());
     if (resolved.status === 'bound') {
       store.setBinding({
@@ -92,8 +113,26 @@ export function createVoiceWorker(options = {}) {
         source: resolved.source,
         language: resolved.profile.language,
       });
+      return {
+        status: 'bound',
+        bound: true,
+        code: 'BOUND',
+        profile: resolved.profile,
+        source: resolved.source,
+        health,
+        profiles: profiles.map((p) => ({ id: p.id, name: p.name, language: p.language })),
+      };
     }
-    return { ...resolved, health, profiles: profiles.map((p) => ({ id: p.id, name: p.name, language: p.language })) };
+    return {
+      status: 'unbound',
+      bound: false,
+      code: 'VOICE_PROFILE_NOT_CONFIGURED',
+      error: 'VOICE_PROFILE_NOT_CONFIGURED',
+      reason: resolved.reason,
+      instruction: 'Create a Voicebox profile named "Aitzaz" from your own voice sample inside the Voicebox app (do not commit the recording). Then re-run bind. No profile id is invented.',
+      health,
+      profiles: profiles.map((p) => ({ id: p.id, name: p.name, language: p.language })),
+    };
   }
 
   function needsApproval(channel) {
@@ -131,7 +170,7 @@ export function createVoiceWorker(options = {}) {
       const resolved = await bindProfile();
       if (resolved.status !== 'bound') {
         job.phase = 'VOICE_GENERATION_FAILED';
-        job.error = resolved.reason || resolved.error || 'profile_unbound';
+        job.error = resolved.code || resolved.reason || resolved.error || 'VOICE_PROFILE_NOT_CONFIGURED';
         job.generation = resolved;
         return store.writeJob(job);
       }
@@ -283,20 +322,27 @@ export function createVoiceWorker(options = {}) {
     const snapshot = {
       worker: 'VOICE WORKER',
       status: health.reachable ? 'READY' : 'OFFLINE',
+      worker_status: 'READY',
+      voicebox_status: health.reachable ? 'CONNECTED' : 'DISCONNECTED',
+      profile_status: binding?.profile_id ? (binding.name || 'Aitzaz') : 'NOT CONFIGURED',
       profile: {
         name: authorizedMeta().name,
         owner: authorizedMeta().owner,
         id: binding?.profile_id || null,
         bound: Boolean(binding?.profile_id),
         consent_confirmed: authorizedMeta().consent_confirmed,
+        label: binding?.profile_id ? (binding.name || 'Aitzaz') : 'NOT CONFIGURED',
       },
       voicebox: {
         reachable: health.reachable,
+        status: health.reachable ? 'CONNECTED' : 'DISCONNECTED',
         base_url: service.baseUrl,
         client_id: service.clientId,
         health: health.voicebox || {},
         error: health.error || null,
       },
+      repository_root: REPO_ROOT,
+      worker_entry: voiceWorkerEntry(REPO_ROOT),
       engines: engines.models || [],
       last_action: last
         ? { id: last.id, phase: last.phase, channel: last.channel, verified: last.verified, updated_at: last.updated_at }
@@ -427,32 +473,77 @@ async function main(argv = process.argv.slice(2)) {
         emotion: opts.emotion || null,
         speed: opts.speed || null,
         intro: opts.intro === true,
-        auto_approve: opts['auto-approve'] === true || opts.channel === 'local',
+        auto_approve: opts['auto-approve'] === true || opts.channel === 'local' || !opts.channel,
       });
       if (job.approval !== 'approved') {
-        print({ status: 'pending_approval', job: summarizeJob(job), notice: job.owner_notice });
+        print({ status: 'pending_approval', generated: false, delivered: false, job: summarizeJob(job), notice: job.owner_notice });
+        process.exitCode = 2;
         break;
       }
       const generated = await worker.generate(job.id);
+      const report = {
+        generation_started: true,
+        generation_status: generated.verified ? 'completed' : 'failed',
+        phase: generated.phase,
+        generated: generated.verified === true,
+        verified: generated.verified === true,
+        voice_profile: generated.generation?.voice_profile || generated.voice_profile || 'Aitzaz',
+        voice_profile_id: worker.store.getBinding()?.profile_id || null,
+        audio: generated.generation?.audio || null,
+        duration: generated.generation?.duration ?? null,
+        generation_id: generated.generation?.generation_id || null,
+        delivered: false,
+        error: generated.error || null,
+        job: summarizeJob(generated),
+      };
       if (generated.verified && opts.deliver === true) {
-        print(worker.deliver(job.id, { confirmed: false }));
+        const delivered = worker.deliver(job.id, { confirmed: false });
+        report.delivery = delivered.delivery;
+        report.delivered = delivered.delivery?.confirmed === true;
+        print(delivered);
       } else {
-        print(generated);
+        print(report);
       }
+      if (!generated.verified) process.exitCode = 1;
       break;
     }
-    case 'bind':
-      print(await worker.bindProfile());
+    case 'bind': {
+      const bound = await worker.bindProfile();
+      print(bound);
+      if (bound.bound !== true) process.exitCode = 1;
       break;
+    }
     case 'profiles':
       print(await worker.service.listProfiles());
       break;
-    case 'health':
-      print(await worker.service.health());
+    case 'health': {
+      const health = await worker.service.health();
+      print({
+        ok: health.reachable === true,
+        status: health.reachable ? 'CONNECTED' : 'DISCONNECTED',
+        reachable: health.reachable === true,
+        base_url: health.base_url,
+        client_id: health.client_id,
+        http_status: health.http_status,
+        voicebox: health.voicebox || {},
+        error: health.reachable ? null : (health.error || `Voicebox is not reachable at ${health.base_url}`),
+        repository_root: REPO_ROOT,
+        worker_entry: voiceWorkerEntry(REPO_ROOT),
+      });
+      if (!health.reachable) process.exitCode = 1;
       break;
+    }
     case 'status':
     case 'center':
       print(await worker.status());
+      break;
+    case 'paths':
+      print({
+        cwd: process.cwd(),
+        repository_root: REPO_ROOT,
+        worker_entry: voiceWorkerEntry(REPO_ROOT),
+        hint: usageHint(REPO_ROOT),
+      });
       break;
     case 'jobs':
       print(worker.store.listJobs().map(summarizeJob));

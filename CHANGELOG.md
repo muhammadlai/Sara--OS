@@ -6,6 +6,13 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — Voice Worker path-safe CLI
+
+### Fixed
+- Voice Worker must be run from the git repository root (`skills/voice-worker/voice-worker.mjs`). A path-safe launcher `scripts/aitzaz-voice.mjs` plus `npm run voice:health|bind|speak` avoids the `$HOME/skills/...` module-not-found error.
+- Health / bind / speak now fail closed: DISCONNECTED, `VOICEBOX_UNREACHABLE`, `VOICE_PROFILE_NOT_CONFIGURED`, or `VOICE_GENERATION_FAILED` — never a fake success.
+- Dashboard Voice Center is actually rendered and shows CONNECTED / DISCONNECTED / NOT CONFIGURED from real checks.
+
 ## 2026-08-18 — Voice Worker (authorized Aitzaz voice via Voicebox)
 
 ### Added

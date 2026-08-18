@@ -8,7 +8,7 @@ voice_profile:
   language: en
   enabled: true
   consent_confirmed: true
-  purpose: AITZAZ AI 2070 Worker Agent
+  purpose: AITZAZ AI 2070 Voice Worker
   # id: leave empty until Voicebox returns the real profile id
   id: ""
 
