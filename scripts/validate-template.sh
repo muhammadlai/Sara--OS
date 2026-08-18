@@ -36,7 +36,7 @@ for file in \
   worker/replies.mjs worker/classifier.mjs worker/gmail.mjs worker/notify.mjs worker/test-replies.mjs \
   worker/adapters.mjs worker/outreach.mjs worker/test-outreach.mjs \
   worker/daily.mjs worker/scheduler.mjs worker/report.mjs worker/test-daily.mjs \
-  worker/workflows.mjs worker/test-workflows.mjs \
+  worker/workflows.mjs worker/test-workflows.mjs worker/API.md \
   dashboard/manifest.webmanifest \
   product-kb/catalog.json product-kb/scripts/generate-pi.js
 do

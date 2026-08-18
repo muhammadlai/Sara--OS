@@ -155,6 +155,9 @@ gws gmail users messages send --params '{"userId":"me"}' --body '{"raw":"BASE64_
 ```
 Used for: Cold email sequences, inbox monitoring for replies, formal document delivery.
 
+## API matrix
+See `worker/API.md`. Jina health: `node worker/cli.mjs jina-health`. `CONNECTED` only after a real 2xx. Missing `JINA_API_KEY` = `NOT_CONFIGURED`.
+
 ## W2 Discovery + Research Worker (new implementation)
 Executable: `worker/cli.mjs`. Jina Reader/Search over HTTP. `JINA_API_KEY` from the environment only.
 

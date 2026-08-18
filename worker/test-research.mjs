@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createJinaClient, getJinaKey, redact } from './jina.mjs';
+import { createJinaClient, getJinaKey, redact, probeJina, JINA_STATUS } from './jina.mjs';
 import { createLedger, EVENTS } from './ledger.mjs';
 import { createResearchEngine } from './research.mjs';
 import { createDiscovery, dedupeProspects } from './discovery.mjs';
@@ -275,7 +275,81 @@ test('secret is never present in research output or ledger files', async () => {
 });
 
 test('W2 files exist in the repository (new implementation, not b1a6f79)', () => {
-  for (const f of ['research.mjs', 'discovery.mjs', 'ledger.mjs', 'cli.mjs', 'test-research.mjs']) {
+  for (const f of ['research.mjs', 'discovery.mjs', 'ledger.mjs', 'cli.mjs', 'test-research.mjs', 'jina.mjs']) {
     assert.ok(existsSync(join(ROOT, 'worker', f)), f);
   }
+});
+
+test('jina health is NOT_CONFIGURED without a key', async () => {
+  const report = await probeJina({ env: {} });
+  assert.equal(report.status, JINA_STATUS.NOT_CONFIGURED);
+  assert.equal(report.key_present, false);
+  assert.equal(report.live, false);
+  assert.equal(report.reason, 'missing_api_key');
+});
+
+test('jina health is NOT_AUTHORIZED on loopback 401 (TEST ADAPTER)', async () => {
+  const stub = await startJinaStub(({ res }) => json(res, 401, { error: 'unauthorized' }));
+  try {
+    const report = await probeJina({
+      env: { JINA_API_KEY: 'test-jina-key-do-not-commit' },
+      searchBase: stub.searchBase,
+      readerBase: stub.readerBase,
+      timeoutMs: 400,
+      maxRetries: 0,
+      allowPrivate: true,
+    });
+    assert.equal(report.status, JINA_STATUS.NOT_AUTHORIZED);
+    assert.equal(report.key_present, true);
+    assert.equal(JSON.stringify(report).includes('test-jina-key-do-not-commit'), false);
+  } finally {
+    stub.server.close();
+  }
+});
+
+test('jina health is CONNECTED only after loopback 2xx (TEST ADAPTER)', async () => {
+  const stub = await startJinaStub(({ res }) => json(res, 200, { data: [{ title: 'ok', url: 'https://example.com' }] }));
+  try {
+    const report = await probeJina({
+      env: { JINA_API_KEY: 'test-jina-key-do-not-commit' },
+      searchBase: stub.searchBase,
+      readerBase: stub.readerBase,
+      timeoutMs: 400,
+      maxRetries: 0,
+      allowPrivate: true,
+    });
+    assert.equal(report.status, JINA_STATUS.CONNECTED);
+    assert.equal(report.search.ok, true);
+  } finally {
+    stub.server.close();
+  }
+});
+
+test('jina health is UNREACHABLE on loopback timeout (TEST ADAPTER)', async () => {
+  const stub = await startJinaStub(() => { /* hang */ });
+  try {
+    const report = await probeJina({
+      env: { JINA_API_KEY: 'test-jina-key-do-not-commit' },
+      searchBase: stub.searchBase,
+      readerBase: stub.readerBase,
+      timeoutMs: 40,
+      maxRetries: 0,
+      allowPrivate: true,
+    });
+    assert.equal(report.status, JINA_STATUS.UNREACHABLE);
+  } finally {
+    stub.server.close();
+  }
+});
+
+test('live Jina health runs only when JINA_API_KEY is set', async (t) => {
+  const key = getJinaKey(process.env);
+  if (!key) {
+    t.skip('JINA_API_KEY unset — live Jina probe not run');
+    return;
+  }
+  const report = await probeJina({ timeoutMs: 8000, maxRetries: 0 });
+  assert.ok(Object.values(JINA_STATUS).includes(report.status));
+  assert.equal(report.live, true);
+  assert.equal(JSON.stringify(report).includes(key), false);
 });

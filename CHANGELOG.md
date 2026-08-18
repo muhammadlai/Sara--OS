@@ -6,6 +6,14 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W2 Jina API health/auth
+
+### Added
+- `probeJina()` / `jina-health` CLI. Statuses: CONNECTED, NOT_AUTHORIZED, NOT_CONFIGURED, UNREACHABLE, ERROR.
+- CONNECTED only after a real HTTP 2xx. Missing key stays `NOT_CONFIGURED`. Key is never logged.
+- Dashboard API Status panel. Jina is the only live probe this phase.
+- `worker/API.md` dependency matrix.
+
 ## 2026-08-18 — Canonical consolidation (workflows, Worker Center, PWA)
 
 ### Added

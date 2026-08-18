@@ -14,6 +14,25 @@ export function getJinaKey(env = process.env) {
   return key.trim();
 }
 
+export const JINA_STATUS = {
+  CONNECTED: 'CONNECTED',
+  NOT_AUTHORIZED: 'NOT_AUTHORIZED',
+  NOT_CONFIGURED: 'NOT_CONFIGURED',
+  UNREACHABLE: 'UNREACHABLE',
+  ERROR: 'ERROR',
+};
+
+export function classifyJinaHttp(result) {
+  if (!result) return JINA_STATUS.ERROR;
+  if (result.reason === 'missing_api_key') return JINA_STATUS.NOT_CONFIGURED;
+  if (result.reason === 'authentication_failed') return JINA_STATUS.NOT_AUTHORIZED;
+  if (result.reason === 'timeout' || result.reason === 'network') return JINA_STATUS.UNREACHABLE;
+  if (result.ok === true && result.status >= 200 && result.status < 300) return JINA_STATUS.CONNECTED;
+  if (result.status >= 500 || String(result.reason || '').startsWith('http_5')) return JINA_STATUS.ERROR;
+  if (result.status === 401 || result.status === 403) return JINA_STATUS.NOT_AUTHORIZED;
+  return JINA_STATUS.ERROR;
+}
+
 export function redact(value) {
   if (value == null) return value;
   const s = String(value);
@@ -119,5 +138,68 @@ export function createJinaClient(options = {}) {
     return request(`${readerBase}/${target}`);
   }
 
-  return { search, read, searchBase, readerBase, timeoutMs, maxRetries };
+  async function health({ probeQuery = 'example.com', probeUrl = 'https://example.com' } = {}) {
+    const key = getJinaKey(env);
+    if (!key) {
+      return {
+        service: 'jina',
+        status: JINA_STATUS.NOT_CONFIGURED,
+        reason: 'missing_api_key',
+        key_present: false,
+        live: false,
+        search: null,
+        reader: null,
+        search_base: searchBase,
+        reader_base: readerBase,
+      };
+    }
+
+    const searchResult = await search(probeQuery);
+    const readerResult = await read(probeUrl);
+    const searchStatus = classifyJinaHttp(searchResult);
+    const readerStatus = classifyJinaHttp(readerResult);
+
+    let status = JINA_STATUS.ERROR;
+    if (searchStatus === JINA_STATUS.NOT_AUTHORIZED || readerStatus === JINA_STATUS.NOT_AUTHORIZED) {
+      status = JINA_STATUS.NOT_AUTHORIZED;
+    } else if (searchStatus === JINA_STATUS.CONNECTED || readerStatus === JINA_STATUS.CONNECTED) {
+      status = JINA_STATUS.CONNECTED;
+    } else if (searchStatus === JINA_STATUS.UNREACHABLE && readerStatus === JINA_STATUS.UNREACHABLE) {
+      status = JINA_STATUS.UNREACHABLE;
+    } else if (searchStatus === JINA_STATUS.NOT_CONFIGURED) {
+      status = JINA_STATUS.NOT_CONFIGURED;
+    }
+
+    return {
+      service: 'jina',
+      status,
+      reason: searchResult.reason || readerResult.reason,
+      key_present: true,
+      live: true,
+      search: {
+        status: searchStatus,
+        http_status: searchResult.status,
+        reason: searchResult.reason,
+        ok: searchResult.ok === true,
+      },
+      reader: {
+        status: readerStatus,
+        http_status: readerResult.status,
+        reason: readerResult.reason,
+        ok: readerResult.ok === true,
+      },
+      search_base: searchBase,
+      reader_base: readerBase,
+    };
+  }
+
+  return { search, read, health, searchBase, readerBase, timeoutMs, maxRetries };
+}
+
+export async function probeJina(options = {}) {
+  const client = options.client || createJinaClient(options);
+  return client.health({
+    probeQuery: options.probeQuery,
+    probeUrl: options.probeUrl,
+  });
 }

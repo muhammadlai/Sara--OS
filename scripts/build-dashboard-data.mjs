@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSimpleYaml } from '../skills/voice-worker/yaml.mjs';
 import { nextRunAt } from '../worker/scheduler.mjs';
+import { probeJina } from '../worker/jina.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'dashboard');
@@ -304,6 +305,50 @@ const workers = {
   source: 'worker/* file presence (no live providers queried)',
 };
 
+const jinaHealth = await probeJina({ timeoutMs: 4000, maxRetries: 0 });
+const apis = {
+  jina: {
+    status: jinaHealth.status,
+    reason: jinaHealth.reason,
+    key_present: jinaHealth.key_present,
+    live: jinaHealth.live === true,
+    search: jinaHealth.search,
+    reader: jinaHealth.reader,
+    note: jinaHealth.status === 'CONNECTED' ? 'real Jina 2xx' : 'CONNECTED only after a real Jina 2xx',
+  },
+  gmail: {
+    status: 'NOT_AUTHORIZED',
+    reason: 'gmail_oauth_not_in_repo',
+    live: false,
+    note: 'W3 Gmail OAuth is not implemented. Inbox uses GMAIL_ADAPTER_URL only.',
+  },
+  teams: {
+    status: process.env.TEAMS_ACCESS_TOKEN ? 'NOT_CONFIGURED' : 'NOT_AUTHORIZED',
+    reason: process.env.TEAMS_ACCESS_TOKEN ? 'graph_health_not_probed_this_phase' : 'missing_teams_token',
+    live: false,
+    note: 'Token presence is not CONNECTED. Graph health is a later phase.',
+  },
+  notifications: {
+    status: 'NOT_CONFIGURED',
+    reason: process.env.NOTIFY_WEBHOOK_URL ? 'webhook_health_not_probed_this_phase' : 'adapter_not_configured',
+    live: false,
+  },
+  voicebox: {
+    status: voiceRuntime?.voicebox?.reachable ? 'CONNECTED' : (voiceRuntime ? 'UNREACHABLE' : 'NOT_CONFIGURED'),
+    reason: voiceRuntime?.voicebox?.reachable ? 'prior_voice_worker_health' : 'no_live_voicebox_probe_this_phase',
+    live: Boolean(voiceRuntime?.voicebox?.reachable),
+    note: 'CONNECTED only if a prior Voice Worker /health snapshot is reachable.',
+  },
+  scheduler: {
+    status: w6Present ? 'NOT_CONFIGURED' : 'ERROR',
+    reason: w6Present ? 'local_scheduler_not_an_external_api' : 'w6_missing',
+    live: false,
+    next_run: operations.next_run,
+    last_status: operations.status,
+  },
+  source: 'worker/jina.mjs probeJina() + env presence. No fake CONNECTED.',
+};
+
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [
   { area: 'W3', item: 'Gmail OAuth / gws send is not in this repository. Email send uses EMAIL_ADAPTER_URL / GMAIL_SEND_URL through W5. Unconfigured = ADAPTER_UNAVAILABLE / NOT_AUTHORIZED.' },
@@ -344,6 +389,7 @@ const data = {
   outreach,
   operations,
   workers,
+  apis,
   future_phases,
 };
 

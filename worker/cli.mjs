@@ -16,6 +16,7 @@ import { classifyReply } from './classifier.mjs';
 import { createOutreach, selectChannel } from './outreach.mjs';
 import { createDailyWorker } from './daily.mjs';
 import { listWorkflows, resolveWorkflow, attachWorkflow } from './workflows.mjs';
+import { probeJina } from './jina.mjs';
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -149,6 +150,13 @@ export async function main(argv = process.argv.slice(2)) {
     case 'worker-report':
       print(createDailyWorker({ home: opts.home }).report());
       break;
+    case 'jina-health':
+    case 'jina':
+      print(await probeJina({
+        probeQuery: opts.query || 'example.com',
+        probeUrl: opts.url || 'https://example.com',
+      }));
+      break;
     case 'workflows':
       print({ workflows: listWorkflows() });
       break;
@@ -182,7 +190,7 @@ export async function main(argv = process.argv.slice(2)) {
     }
     default:
       print({
-        usage: 'node worker/cli.mjs <research|search|discover|note|ledger|lead|classify|replies|replies-status|select|prepare|approve-outreach|send|outreach-status|run|status|report|dry-run|worker>',
+        usage: 'node worker/cli.mjs <research|search|discover|jina-health|note|ledger|lead|classify|replies|replies-status|select|prepare|approve-outreach|send|outreach-status|run|status|report|dry-run|worker>',
         dry_run: 'discover is dry-run unless --apply; worker dry-run never sends',
         env: ['JINA_API_KEY', 'GMAIL_ADAPTER_URL', 'NOTIFY_WEBHOOK_URL', 'EMAIL_ADAPTER_URL', 'TEAMS_ACCESS_TOKEN', 'LINKEDIN_ACCESS_TOKEN', 'WORKER_TZ', 'WORKER_HOUR', 'WORKER_MINUTE'],
       });

@@ -171,7 +171,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['workers','Worker Center'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['operations','Operations'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['workers','Worker Center'],['apis','API Status'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['operations','Operations'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -373,6 +373,28 @@ function ready(D){
     <div class="grid g3" style="margin-top:14px">${workerCards}</div>
   </div></section>`;
 
+  const A = D.apis || {};
+  const apiRow = (name, rec) => {
+    const st = rec?.status || 'NOT_CONFIGURED';
+    const cls = st === 'CONNECTED' ? 'ok' : (st === 'ERROR' || st === 'UNREACHABLE' ? 'bad' : 'warn');
+    return `<div class="stat"><div class="k ${cls}">${esc(st)}</div><div class="l">${esc(name)}</div></div>`;
+  };
+  const apis = `
+  <section id="apis"><div class="panel">${H('API Connection Status', A.source || 'worker/jina.mjs')}
+    <div class="grid g4">
+      ${apiRow('Jina', A.jina)}
+      ${apiRow('Gmail', A.gmail)}
+      ${apiRow('Teams', A.teams)}
+      ${apiRow('Notifications', A.notifications)}
+      ${apiRow('Voicebox', A.voicebox)}
+      ${apiRow('Scheduler', A.scheduler)}
+    </div>
+    <p class="mono" style="margin-top:12px;font-size:11px;color:var(--dim)">
+      Jina: ${esc(A.jina?.reason || '—')} (live=${A.jina?.live ? 'yes' : 'no'}).
+      CONNECTED is only shown after a real health/auth check. This phase probes Jina only.
+    </p>
+  </div></section>`;
+
   const agents = `
   <section id="agents"><div class="panel">${H('Agents — Sales Pipeline', D.agents.source)}
     <div class="list">
@@ -464,7 +486,7 @@ function ready(D){
   </div></section>`;
 
   document.getElementById('main').innerHTML =
-    sys + brain + agents + voice + replies + outreach + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+    sys + brain + agents + workers + apis + voice + replies + outreach + operations + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
 
   document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('button[data-act]');

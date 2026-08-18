@@ -13,6 +13,7 @@
 
 ```bash
 export JINA_API_KEY=...          # never commit
+node worker/cli.mjs jina-health  # CONNECTED only after a real 2xx
 node worker/cli.mjs research --url https://example.com --lead acme
 node worker/cli.mjs discover --query "fleet buyers UAE"
 npm run test:worker
