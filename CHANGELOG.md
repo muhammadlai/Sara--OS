@@ -6,6 +6,12 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W2 Jina live probe result (this host)
+
+### Noted
+- Local `node worker/cli.mjs jina-health` → `NOT_CONFIGURED` / `missing_api_key` / `live: false`.
+- GitHub repository secret `JINA_API_KEY` is not present in the local/Arena CLI environment. Pending CI will pass `${{ secrets.JINA_API_KEY }}` when `validate.yml` is activated.
+
 ## 2026-08-18 — W2 Jina API health/auth
 
 ### Added

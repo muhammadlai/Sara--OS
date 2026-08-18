@@ -22,4 +22,12 @@ jobs:
           node-version: 22
 
       - name: Validate template
+        env:
+          # Injected by GitHub Actions from the repository secret. Never echo.
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
         run: npm test
+
+      - name: Jina health (real probe only if secret is set)
+        env:
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+        run: node worker/cli.mjs jina-health

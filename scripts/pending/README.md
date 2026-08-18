@@ -3,6 +3,10 @@
 `validate.yml` is the project's CI workflow (runs `npm test` on every push/PR
 to `main`). It is **ready but not yet active**.
 
+When activated it passes repository secret `JINA_API_KEY` into the job env.
+GitHub Secrets are **not** available to a local `node worker/cli.mjs` process.
+A local unset key is `NOT_CONFIGURED`, not CONNECTED.
+
 ## Why it is here and not in `.github/workflows/`
 
 The push token used for the 2026-08-17 migration is a **GitHub App** token.

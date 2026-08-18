@@ -19,7 +19,7 @@ Honest inventory of **this repository**. `CONNECTED` is never claimed unless a r
 
 | Service | Observed |
 |---------|----------|
-| Jina | `JINA_API_KEY` **unset** → `NOT_CONFIGURED` (no live CONNECTED claim) |
+| Jina | Local CLI: `JINA_API_KEY` **unset** → `NOT_CONFIGURED` (`jina-health`, `live: false`). GitHub repository secrets are **not** injected into this Arena/local shell. `gh secret list` returned HTTP 403 (integration cannot read secret values). Pending CI (`scripts/pending/validate.yml`) will receive `secrets.JINA_API_KEY` only after the workflow is activated. No fake CONNECTED. |
 | Gmail OAuth | **absent** → `NOT_AUTHORIZED` |
 | Notify webhook | unset |
 | Email send adapter | unset → `ADAPTER_UNAVAILABLE` |
