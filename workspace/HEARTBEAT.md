@@ -114,6 +114,14 @@ Run `node skills/voice-worker/voice-worker.mjs status`.
 - Purge expired generated audio (`purge`). Never store raw owner samples in the repo.
 None (Voicebox healthy, no pending approvals, no failures) → Skip.
 
+## 16. Daily Worker (W6)
+Run `node worker/cli.mjs worker status` (from git root).
+- Status `NEVER_RUN` → not a success; do not invent a daily report.
+- Status `FAILED` / lock stale → report the real reason from `$OPENCLAW_HOME/worker/runs`.
+- `dry-run` never sends. Confirmed sends only if the ledger has `OUTREACH_SENT` + provider message id.
+- If it is time (`WORKER_HOUR` in `WORKER_TZ`) and no completed run for today's date key: `node worker/cli.mjs worker run`.
+None (today's run already completed, or not yet scheduled) → Skip.
+
 No issues → reply only: HEARTBEAT_OK
 
 ---

@@ -199,6 +199,24 @@ node worker/cli.mjs outreach-status
 
 `OUTREACH_SENT` only after the provider returns a message id.
 
+## W6 Daily Autonomous Worker
+`worker/daily.mjs` + `worker/scheduler.mjs` orchestrate W1–W5. Persistent run IDs and locks live under `$OPENCLAW_HOME/worker/` (not git).
+
+```bash
+node worker/cli.mjs worker run
+node worker/cli.mjs worker status
+node worker/cli.mjs worker report
+node worker/cli.mjs worker dry-run   # never sends
+```
+
+| Env | Role | Default |
+|-----|------|---------|
+| `WORKER_TZ` | IANA timezone | `UTC` |
+| `WORKER_HOUR` / `WORKER_MINUTE` | daily slot | `10` / `0` |
+| `WORKER_QUERIES` | discovery queries, `\|`-separated | fleet / importer defaults |
+
+Same-day duplicate runs are skipped. Stale locks → previous run `FAILED` (`stale_lock_recovered`). Dry-run never calls send adapters. Confirmed sends still require provider confirmation from W5.
+
 ## Jina AI (Web Search + Content Extraction)
 For proactive lead discovery and company research.
 

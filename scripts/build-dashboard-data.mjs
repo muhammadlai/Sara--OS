@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSimpleYaml } from '../skills/voice-worker/yaml.mjs';
+import { nextRunAt } from '../worker/scheduler.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'dashboard');
@@ -241,6 +242,44 @@ const outreach = {
   source: 'worker/outreach.mjs + worker/adapters.mjs',
 };
 
+const w6Present = existsSync(join(ROOT, 'worker/daily.mjs')) && existsSync(join(ROOT, 'worker/scheduler.mjs'));
+const dailyRuntime = (() => {
+  const home = process.env.OPENCLAW_HOME || join(process.env.HOME || '', '.openclaw');
+  const workerDir = join(home, 'worker');
+  const schedulerFile = join(workerDir, 'scheduler.json');
+  const currentFile = join(workerDir, 'current-run.json');
+  const latestReport = join(workerDir, 'reports', 'latest.json');
+  const sched = existsSync(schedulerFile) ? (() => { try { return JSON.parse(readFileSync(schedulerFile, 'utf8')); } catch { return null; } })() : null;
+  const current = existsSync(currentFile) ? (() => { try { return JSON.parse(readFileSync(currentFile, 'utf8')); } catch { return null; } })() : null;
+  const report = existsSync(latestReport) ? (() => { try { return JSON.parse(readFileSync(latestReport, 'utf8')); } catch { return null; } })() : null;
+  const last = current?.status && current.status !== 'RUNNING' ? current : (report ? { id: report.run_id, status: report.status, counts: report.counts, dry_run: report.dry_run } : null);
+  return { sched, current: current?.status === 'RUNNING' ? current : null, last, report };
+})();
+const operations = {
+  worker: 'W6 DAILY AUTONOMOUS WORKER',
+  present: w6Present,
+  current_run: dailyRuntime?.current ? { id: dailyRuntime.current.id, status: dailyRuntime.current.status, started_at: dailyRuntime.current.started_at } : null,
+  last_run: dailyRuntime?.last ? { id: dailyRuntime.last.id, status: dailyRuntime.last.status, dry_run: dailyRuntime.last.dry_run || false } : null,
+  next_run: nextRunAt(new Date(), {
+    timezone: dailyRuntime?.sched?.timezone || process.env.WORKER_TZ || 'UTC',
+    hour: Number(process.env.WORKER_HOUR || 10),
+    minute: Number(process.env.WORKER_MINUTE || 0),
+  }).toISOString(),
+  status: dailyRuntime?.current?.status || dailyRuntime?.last?.status || (w6Present ? 'NEVER_RUN' : 'MISSING'),
+  discovered: dailyRuntime?.report?.counts?.leads_discovered || dailyRuntime?.last?.counts?.leads_discovered || 0,
+  researched: dailyRuntime?.report?.counts?.leads_researched || 0,
+  approved: dailyRuntime?.report?.counts?.approvals_pending || 0,
+  confirmed_sends: dailyRuntime?.report?.counts?.confirmed_sends || 0,
+  failed: dailyRuntime?.report?.counts?.failed_sends || 0,
+  manual_assist: dailyRuntime?.report?.counts?.manual_assist_actions || 0,
+  replies: dailyRuntime?.report?.counts?.replies_received || 0,
+  follow_ups: dailyRuntime?.report?.counts?.follow_ups || 0,
+  errors: dailyRuntime?.report?.counts?.provider_errors || (dailyRuntime?.report?.errors || []).length || 0,
+  mode: dailyRuntime?.report?.mode || null,
+  timezone: dailyRuntime?.sched?.timezone || process.env.WORKER_TZ || 'UTC',
+  source: 'worker/daily.mjs + $OPENCLAW_HOME/worker/runs (no live providers queried at build time)',
+};
+
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [
   { area: 'SDR / Work', item: 'Live CRM pipeline metrics (requires a connected Google Sheets / Notion CRM — configure deploy/config.sh)' },
@@ -278,6 +317,7 @@ const data = {
   voice,
   replies,
   outreach,
+  operations,
   future_phases,
 };
 

@@ -168,7 +168,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['operations','Operations'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -318,6 +318,32 @@ function ready(D){
     </p>
     <h2 style="margin-top:18px"><span class="ico"></span>Confirmed sends</h2>
     <div class="grid g2">${sentCards}</div>
+  </div></section>`;
+
+  const P = D.operations || {};
+  const opStatusClass = P.status === 'COMPLETED' ? 'ok' : (P.status === 'FAILED' || P.status === 'MISSING' ? 'bad' : 'warn');
+  const operations = `
+  <section id="operations"><div class="panel">${H('Daily Worker / Operations Center', P.source || 'worker/daily.mjs')}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${P.present ? 'ok' : 'warn'}">${P.present ? 'READY' : 'MISSING'}</div><div class="l">W6 Worker</div></div>
+      <div class="stat"><div class="k ${opStatusClass}">${esc(P.status || 'NEVER_RUN')}</div><div class="l">Status</div></div>
+      <div class="stat"><div class="k">${esc(P.current_run?.id || '—')}</div><div class="l">Current Run</div></div>
+      <div class="stat"><div class="k">${esc(P.last_run?.id || '—')}</div><div class="l">Last Run</div></div>
+      <div class="stat"><div class="k">${esc(P.next_run || 'not scheduled on this host')}</div><div class="l">Next Run</div></div>
+      <div class="stat"><div class="k">${P.discovered || 0}</div><div class="l">Discovered</div></div>
+      <div class="stat"><div class="k">${P.researched || 0}</div><div class="l">Researched</div></div>
+      <div class="stat"><div class="k">${P.approved || 0}</div><div class="l">Approvals Pending</div></div>
+      <div class="stat"><div class="k ${(P.confirmed_sends || 0) ? 'ok' : ''}">${P.confirmed_sends || 0}</div><div class="l">Confirmed Sends</div></div>
+      <div class="stat"><div class="k ${(P.failed || 0) ? 'bad' : ''}">${P.failed || 0}</div><div class="l">Failed</div></div>
+      <div class="stat"><div class="k">${P.manual_assist || 0}</div><div class="l">Manual-Assist</div></div>
+      <div class="stat"><div class="k">${P.replies || 0}</div><div class="l">Replies</div></div>
+      <div class="stat"><div class="k">${P.follow_ups || 0}</div><div class="l">Follow-ups</div></div>
+      <div class="stat"><div class="k ${(P.errors || 0) ? 'warn' : ''}">${P.errors || 0}</div><div class="l">Errors</div></div>
+    </div>
+    <p class="mono" style="margin-top:12px;font-size:11px;color:var(--dim)">
+      Timezone: ${esc(P.timezone || 'UTC')} · Mode: ${esc(P.mode || 'no completed run on this host')}.
+      Confirmed sends are provider-confirmed only. NEVER_RUN means no local ledger run exists — not a fake idle success.
+    </p>
   </div></section>`;
 
   const agents = `

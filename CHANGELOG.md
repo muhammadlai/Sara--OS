@@ -6,6 +6,14 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W6 daily autonomous worker
+
+### Added
+- Daily worker orchestrating existing W1–W5 modules: discovery → research → score → approval → channel selection → outreach → reply check → classify → notify → daily report.
+- Timezone-aware scheduler, persistent run IDs, restart-safe locks, same-day duplicate protection.
+- CLI: `worker run` / `worker status` / `worker report` / `worker dry-run` (dry-run never sends).
+- Operations Center on the existing dashboard. Confirmed sends remain provider-confirmed only.
+
 ## 2026-08-18 — W5 multi-channel outreach
 
 ### Added

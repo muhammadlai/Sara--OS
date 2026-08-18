@@ -16,6 +16,7 @@ export JINA_API_KEY=...          # never commit
 node worker/cli.mjs research --url https://example.com --lead acme
 node worker/cli.mjs discover --query "fleet buyers UAE"
 npm run test:worker
+```
 
 ## W4 Reply Intelligence
 
@@ -36,4 +37,16 @@ node worker/cli.mjs send --lead acme --fingerprint <fp>
 ```
 
 Unconfigured Email = `ADAPTER_UNAVAILABLE`. Teams without `TEAMS_ACCESS_TOKEN` = `NOT_AUTHORIZED`. LinkedIn without an official API = `MANUAL_ASSIST_REQUIRED` (never `OUTREACH_SENT`).
+
+## W6 Daily Autonomous Worker
+
+Orchestrates existing W1–W5 modules. Does not duplicate their logic.
+
+```bash
+node worker/cli.mjs worker run
+node worker/cli.mjs worker status
+node worker/cli.mjs worker report
+node worker/cli.mjs worker dry-run    # NEVER sends
 ```
+
+Schedule: `WORKER_TZ` (default UTC), `WORKER_HOUR` / `WORKER_MINUTE` (default 10:00). Persistent run IDs live under `$OPENCLAW_HOME/worker/runs`. Duplicate same-day runs are skipped. Stale locks are recovered as `FAILED` (`stale_lock_recovered`). Confirmed sends require provider `message_id`.

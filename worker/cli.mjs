@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * W2 CLI — research / discover / note / ledger
+ * Worker CLI — W2 research, W4 replies, W5 outreach, W6 daily worker.
  * Usage (from repo root):
+ *   node worker/cli.mjs worker run|status|report|dry-run
  *   node worker/cli.mjs research --url https://example.com --lead acme
  *   node worker/cli.mjs search --query "importers Nigeria" --lead acme
  *   node worker/cli.mjs discover --query "fleet buyers UAE" [--apply]
@@ -13,6 +14,7 @@ import { createDiscovery } from './discovery.mjs';
 import { createReplyWorker } from './replies.mjs';
 import { classifyReply } from './classifier.mjs';
 import { createOutreach, selectChannel } from './outreach.mjs';
+import { createDailyWorker } from './daily.mjs';
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -124,11 +126,48 @@ export async function main(argv = process.argv.slice(2)) {
     case 'outreach-status':
       print(createOutreach({ home: opts.home }).summarize());
       break;
+    case 'run':
+    case 'worker-run':
+      print(await createDailyWorker({ home: opts.home }).execute({
+        dryRun: false,
+        force: opts.force === true,
+      }));
+      break;
+    case 'dry-run':
+    case 'worker-dry-run':
+      print(await createDailyWorker({ home: opts.home }).execute({
+        dryRun: true,
+        force: opts.force === true,
+      }));
+      break;
+    case 'status':
+    case 'worker-status':
+      print(createDailyWorker({ home: opts.home }).status());
+      break;
+    case 'report':
+    case 'worker-report':
+      print(createDailyWorker({ home: opts.home }).report());
+      break;
+    case 'worker': {
+      const sub = opts._[1] || 'help';
+      const daily = createDailyWorker({ home: opts.home });
+      if (sub === 'run') print(await daily.execute({ dryRun: false, force: opts.force === true }));
+      else if (sub === 'dry-run') print(await daily.execute({ dryRun: true, force: opts.force === true }));
+      else if (sub === 'status') print(daily.status());
+      else if (sub === 'report') print(daily.report());
+      else {
+        print({
+          usage: 'node worker/cli.mjs worker <run|status|report|dry-run>',
+          note: 'dry-run never sends',
+        });
+      }
+      break;
+    }
     default:
       print({
-        usage: 'node worker/cli.mjs <research|search|discover|note|ledger|lead|classify|replies|replies-status|select|prepare|approve-outreach|send|outreach-status>',
-        dry_run: 'discover is dry-run unless --apply',
-        env: ['JINA_API_KEY', 'GMAIL_ADAPTER_URL', 'NOTIFY_WEBHOOK_URL', 'EMAIL_ADAPTER_URL', 'TEAMS_ACCESS_TOKEN', 'LINKEDIN_ACCESS_TOKEN'],
+        usage: 'node worker/cli.mjs <research|search|discover|note|ledger|lead|classify|replies|replies-status|select|prepare|approve-outreach|send|outreach-status|run|status|report|dry-run|worker>',
+        dry_run: 'discover is dry-run unless --apply; worker dry-run never sends',
+        env: ['JINA_API_KEY', 'GMAIL_ADAPTER_URL', 'NOTIFY_WEBHOOK_URL', 'EMAIL_ADAPTER_URL', 'TEAMS_ACCESS_TOKEN', 'LINKEDIN_ACCESS_TOKEN', 'WORKER_TZ', 'WORKER_HOUR', 'WORKER_MINUTE'],
       });
   }
 }

@@ -62,6 +62,7 @@ Architecture: `tenant → wireproxy (SOCKS5, ~4MB) → WARP account → unique C
 - **worker (W2)** — Jina discovery/research (`worker/cli.mjs`); dry-run default; no fabricated results
 - **worker (W4)** — Reply classifier, opt-out, notifications; no invented inbox mail
 - **worker (W5)** — Multi-channel outreach; send only after provider confirmation
+- **worker (W6)** — Daily autonomous worker (discover → research → score → approve → outreach → replies → report); dry-run never sends
 
 ## Requirements
 
