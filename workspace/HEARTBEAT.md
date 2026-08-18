@@ -42,7 +42,9 @@ Check CRM for leads with status = email_sent:
 None: Skip.
 
 ## 8. Lead Discovery (Daily 10:00)
-Execute lead-discovery skill:
+Execute lead-discovery skill, then optionally W2:
+`node worker/cli.mjs discover --query "[market query]"` (dry-run unless owner says `--apply`).
+If `JINA_API_KEY` is missing, record `RESEARCH_FAILED` / `missing_api_key` and skip. Do not invent prospects.
 1. Select target market based on day of week (Mon/Tue: Africa, Wed/Thu: ME, Fri: SEA, Sat: LatAm, Sun: Other)
 2. Run 2-3 search queries via Jina Search
 3. Evaluate discovered companies, write ICP >= 5 to CRM

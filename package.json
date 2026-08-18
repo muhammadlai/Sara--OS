@@ -12,6 +12,7 @@
     "validate": "bash scripts/validate-template.sh",
     "test": "npm run validate",
     "test:voice": "node --test skills/voice-worker/test/voice-worker.test.mjs",
+    "test:worker": "node --test worker/test-research.mjs",
     "dashboard:data": "node scripts/build-dashboard-data.mjs",
     "dashboard": "node scripts/build-dashboard-data.mjs && echo 'Open dashboard/index.html in a browser (or serve with any static file server).'",
     "voice": "node scripts/aitzaz-voice.mjs",

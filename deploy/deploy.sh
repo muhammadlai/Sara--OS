@@ -260,6 +260,16 @@ for skill_dir in "$SKILLS_DIR"/*/; do
   fi
 done
 
+# Upload W2 discovery/research worker
+WORKER_DIR="$(dirname "$SCRIPT_DIR")/worker"
+if [ -d "$WORKER_DIR" ]; then
+  remote "mkdir -p '$REMOTE_WORKSPACE_DIR/worker'"
+  for script in "$WORKER_DIR"/*.mjs "$WORKER_DIR"/*.md; do
+    [ -f "$script" ] && remote_upload "$script" "$REMOTE_WORKSPACE_DIR/worker/$(basename "$script")"
+  done
+  log "  worker/ (W2 discovery+research) deployed"
+fi
+
 # ─── Step 6: Start Gateway ───────────────────────────────
 info "Step 6/8: Starting Gateway..."
 

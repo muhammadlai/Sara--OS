@@ -155,6 +155,20 @@ gws gmail users messages send --params '{"userId":"me"}' --body '{"raw":"BASE64_
 ```
 Used for: Cold email sequences, inbox monitoring for replies, formal document delivery.
 
+## W2 Discovery + Research Worker (new implementation)
+Executable: `worker/cli.mjs`. Jina Reader/Search over HTTP. `JINA_API_KEY` from the environment only.
+
+```bash
+node worker/cli.mjs research --url https://example.com --lead acme
+node worker/cli.mjs search --query "fleet buyers UAE" --lead acme
+node worker/cli.mjs discover --query "importers Nigeria"          # dry-run
+node worker/cli.mjs discover --query "importers Nigeria" --apply  # store signals
+node worker/cli.mjs note --lead acme --text "Met at a trade show" # source:manual verified:false
+```
+
+Ledger events: `RESEARCH_LOGGED`, `RESEARCH_FAILED`, `DISCOVERY_SOURCE`, `SIGNALS_UPDATED`.
+Stage becomes `researched` only after a successful Jina call. Failures (missing key, network, 401, timeout, zero results) never advance the stage.
+
 ## Jina AI (Web Search + Content Extraction)
 For proactive lead discovery and company research.
 

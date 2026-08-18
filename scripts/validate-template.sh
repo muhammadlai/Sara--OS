@@ -32,6 +32,7 @@ for file in \
   skills/voice-worker/SKILL.md skills/voice-worker/voice-service.mjs \
   skills/voice-worker/voice-worker.mjs skills/voice-worker/voice.yaml \
   workspace/voice.yaml \
+  worker/research.mjs worker/discovery.mjs worker/ledger.mjs worker/cli.mjs worker/test-research.mjs \
   product-kb/catalog.json product-kb/scripts/generate-pi.js
 do
   require_file "$file"
@@ -76,6 +77,9 @@ pass "Chroma memory smoke test works"
 
 node --test "$ROOT/skills/voice-worker/test/voice-worker.test.mjs"
 pass "Voice Worker tests passed"
+
+node --test "$ROOT/worker/test-research.mjs"
+pass "W2 discovery/research tests passed"
 
 node --input-type=module -e "
 import { readFileSync } from 'fs';

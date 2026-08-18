@@ -6,6 +6,12 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W2 discovery + research worker
+
+### Added
+- **New** `worker/` research and discovery agents (not recovered from another commit): Jina Reader/Search with retries, timeouts, auth fail-closed, provenance, confidence, ledger events, dry-run discovery, ICP scoring feed.
+- Manual notes are `source: manual` / `verified: false`. Failed research never advances stage.
+
 ## 2026-08-18 — Voice Worker path-safe CLI
 
 ### Fixed

@@ -59,6 +59,7 @@ Architecture: `tenant → wireproxy (SOCKS5, ~4MB) → WARP account → unique C
 - **telegram-toolkit** — Telegram-specific SDR strategies
 - **graphify** — Knowledge graph for product catalog, customer intelligence, and market research
 - **voice-worker** — Authorized Aitzaz voice via Voicebox REST (`VoiceService.speak`)
+- **worker (W2)** — Jina discovery/research (`worker/cli.mjs`); dry-run default; no fabricated results
 
 ## Requirements
 

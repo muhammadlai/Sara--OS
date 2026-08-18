@@ -218,6 +218,7 @@ Pre-built capabilities that extend your AI SDR:
 | **quotation-generator** | Auto-generate PDF proforma invoices with company letterhead, multi-language support. |
 | **graphify** | Knowledge graph engine — map product relationships, customer intelligence, and market research into queryable graphs. Powered by [graphify](https://github.com/safishamsi/graphify). |
 | **voice-worker** | Authorized Aitzaz voice replies via a `VoiceService` abstraction over [Voicebox](https://github.com/jamiepine/voicebox.git) REST (`POST /speak`). Client outbound requires owner approval. Audio is never marked sent without a channel ack. |
+| **worker (W2)** | Discovery + research via Jina (`worker/cli.mjs`). Dry-run by default. Never invents results. |
 
 ### Skill Profiles
 
