@@ -101,6 +101,15 @@ Check CRM for leads where:
 Found: List leads approaching/past window expiry with recommended action.
 None: Skip.
 
+## 15. Voice Worker Health
+Run `node skills/voice-worker/voice-worker.mjs status`.
+- Voicebox unreachable → warn owner, do not offer voice replies.
+- Authorized Aitzaz profile unbound (`GET /profiles` has no matching name/id) → tell owner to create the profile in Voicebox from **their own** sample, then `bind`.
+- Pending voice approvals → list client / company / channel / suggested response.
+- `VOICE_GENERATION_FAILED` in the last 24h → report error, do not claim delivery.
+- Purge expired generated audio (`purge`). Never store raw owner samples in the repo.
+None (Voicebox healthy, no pending approvals, no failures) → Skip.
+
 No issues → reply only: HEARTBEAT_OK
 
 ---

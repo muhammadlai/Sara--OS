@@ -100,6 +100,14 @@ IP_SOCKS_PORT=""            # SOCKS5 port (auto-assigned from 40001 if empty)
 # Leave empty to use PRIMARY_MODEL for compaction (default behavior)
 COMPACTION_PROVIDER=""      # e.g. "claude/claude-haiku-4-5" or "google/gemini-2.5-flash"
 
+# ─── Voice Worker (Voicebox) ─────────────────────────────
+# Local Voicebox studio: https://github.com/jamiepine/voicebox.git
+# Do not commit tokens. Profile id is resolved at runtime from GET /profiles.
+VOICEBOX_ENABLED=false
+VOICEBOX_BASE_URL="http://127.0.0.1:17493"
+VOICEBOX_CLIENT_ID="aitzaz-ai-2070"
+VOICEBOX_TOKEN=""           # optional reverse-proxy bearer — leave empty for local Voicebox
+
 # ─── Deploy Options ──────────────────────────────────────
 INSTALL_OPENCLAW=true
 AUTO_START=true

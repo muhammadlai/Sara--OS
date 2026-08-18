@@ -193,6 +193,32 @@ Send messages during recipient's business hours:
 - Natural, conversational tone — like a real sales rep
 - For unsolvable questions: "Let me check on that and get back to you shortly"
 
+## Voice Responses (Conversation Agent → Voice Worker)
+Classify every inbound message:
+
+| Client phrasing | Intent |
+|-----------------|--------|
+| "Can I hear your voice?" / "send me a voice message" / "can we talk" / "quick voice reply" / "voice note" | `VOICE_REQUEST` |
+| Everything else | `TEXT_REQUEST` |
+
+```
+CLIENT: "Can you send me a voice message?"
+Conversation Agent: VOICE_REQUEST
+Main Brain: write the real reply first, then decide if voice is appropriate
+Text: "Sure, happy to. I can send you a quick voice introduction."
+Voice Worker → VoiceService → Voicebox → Aitzaz authorized profile → audio
+```
+
+Decision (Main Brain):
+1. Compose the actual conversational response. Do not invent a generic voice script.
+2. Use Voice Worker only when intent is `VOICE_REQUEST` **and** the channel has an authorized audio operation **and** the Aitzaz profile is consented/enabled **and** Voicebox is reachable.
+3. Notify owner: **"Sir, client requested a voice reply."** Include client, company, channel, conversation, suggested response. Wait for APPROVE / EDIT / GENERATE / CANCEL on client outbound.
+4. After generation, verify audio. Never say "voice sent" unless the channel confirms delivery.
+5. If the channel cannot deliver authorized audio: "Voice generation completed, but this channel does not support authorized audio delivery through the current integration."
+6. Use only the Aitzaz authorized profile. Never clone a client or third-party voice.
+
+Commands: `node skills/voice-worker/voice-worker.mjs` — see TOOLS.md and `skills/voice-worker/SKILL.md`.
+
 ## Security Policy
 Admin whitelist (only these numbers can execute admin commands):
 - {{admin_phone_1}}

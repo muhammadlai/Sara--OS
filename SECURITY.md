@@ -61,4 +61,11 @@ This security policy covers:
 - Skills (`skills/`)
 - Configuration templates
 
-Third-party services (OpenClaw, MemOS, ChromaDB, Jina) have their own security policies.
+### Voice Worker
+
+- Only Aitzaz's authorized Voicebox profile may be used. Do not clone third-party or client voices.
+- Never commit voice samples, generated WAV/MP3 files, or `VOICEBOX_TOKEN`.
+- Generated audio is stored under `$OPENCLAW_HOME/voice/audio` with a 24h TTL.
+- Do not expose Voicebox (`:17493`) to the public internet without an authenticating reverse proxy.
+
+Third-party services (OpenClaw, MemOS, ChromaDB, Jina, Voicebox) have their own security policies.

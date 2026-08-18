@@ -1,0 +1,70 @@
+# AITZAZ AI 2070 — authorized voice profile
+# The real Voicebox profile ID is NEVER invented here.
+# It is resolved at runtime from GET /profiles by matching name + owner consent.
+
+voice_profile:
+  name: Aitzaz
+  owner: Aitzaz
+  language: en
+  enabled: true
+  consent_confirmed: true
+  purpose: AITZAZ AI 2070 Worker Agent
+  # id: leave empty until Voicebox returns the real profile id
+  id: ""
+
+personality:
+  traits:
+    - professional
+    - natural
+    - confident
+    - friendly
+    - concise
+    - business-oriented
+  # Voicebox personality rewrite (local LLM on the Voicebox host)
+  use_voicebox_personality_rewrite: true
+  # Transparent wording. Do not claim Aitzaz is personally speaking.
+  disclosure: "This is Aitzaz AI speaking on behalf of Aitzaz."
+  include_disclosure_on_intro: true
+
+voicebox:
+  # Override with VOICEBOX_BASE_URL. Default is Voicebox's local API.
+  base_url: "http://127.0.0.1:17493"
+  # X-Voicebox-Client-Id — used for per-client voice binding in Voicebox Settings → MCP
+  client_id: "aitzaz-ai-2070"
+  # Preferred engine is selected from engines Voicebox actually reports as ready.
+  # Allowed: qwen | qwen_custom_voice | luxtts | chatterbox | chatterbox_turbo | tada | kokoro
+  preferred_engine: ""
+  timeout_ms: 120000
+
+approval:
+  # Client outbound voice always needs explicit owner approval.
+  client_outbound: require_approval
+  local_preview: auto
+  owner_channel: auto
+
+retention:
+  audio_ttl_hours: 24
+  keep_metadata: true
+
+channels:
+  telegram:
+    audio_operation: sendVoice
+    authorized: true
+  whatsapp:
+    audio_operation: sendVoiceNote
+    authorized: true
+  email:
+    audio_operation: attachAudio
+    authorized: true
+  teams:
+    audio_operation: uploadFile
+    authorized: true
+  linkedin:
+    audio_operation: none
+    authorized: false
+  web:
+    audio_operation: localPreview
+    authorized: true
+  local:
+    audio_operation: localPreview
+    authorized: true

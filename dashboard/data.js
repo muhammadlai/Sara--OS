@@ -1,51 +1,51 @@
 window.AITZAZ_DATA = {
-  "generatedAt": "2026-08-17T23:41:06.252Z",
+  "generatedAt": "2026-08-18T00:24:07.419Z",
   "app": {
     "name": "AITZAZ AI 2070",
     "tagline": "A futuristic AI Operating System for B2B sales",
     "owner": "Aitzaz",
     "package": {
       "name": "aitzaz-ai-2070",
-      "version": "4.0.0"
+      "version": "4.1.0"
     },
-    "role": "{{role_name}} | Primary CRM: {{crm_type}} | Channels: WhatsApp / Telegram / Email / Microsoft Teams",
+    "role": "{{role_name}} | Primary CRM: {{crm_type}} | Channels: WhatsApp / Telegram / Email / Microsoft Teams | Voice: Aitzaz authorized Voicebox profile",
     "company": "AITZAZ AI 2070",
     "brand": "AITZAZ AI 2070"
   },
   "workspace": {
     "IDENTITY": {
       "exists": true,
-      "bytes": 1222,
+      "bytes": 1360,
       "source": "workspace/IDENTITY.md"
     },
     "SOUL": {
       "exists": true,
-      "bytes": 5439,
+      "bytes": 5834,
       "source": "workspace/SOUL.md"
     },
     "AGENTS": {
       "exists": true,
-      "bytes": 12889,
+      "bytes": 14469,
       "source": "workspace/AGENTS.md"
     },
     "USER": {
       "exists": true,
-      "bytes": 1578,
+      "bytes": 1734,
       "source": "workspace/USER.md"
     },
     "HEARTBEAT": {
       "exists": true,
-      "bytes": 4585,
+      "bytes": 5227,
       "source": "workspace/HEARTBEAT.md"
     },
     "MEMORY": {
       "exists": true,
-      "bytes": 7635,
+      "bytes": 7803,
       "source": "workspace/MEMORY.md"
     },
     "TOOLS": {
       "exists": true,
-      "bytes": 21250,
+      "bytes": 22721,
       "source": "workspace/TOOLS.md"
     }
   },
@@ -186,9 +186,14 @@ window.AITZAZ_DATA = {
         "number": 14,
         "name": "WhatsApp Window Expiry Check (Every heartbeat)",
         "source": "workspace/HEARTBEAT.md"
+      },
+      {
+        "number": 15,
+        "name": "Voice Worker Health",
+        "source": "workspace/HEARTBEAT.md"
       }
     ],
-    "count": 14,
+    "count": 15,
     "source": "workspace/HEARTBEAT.md"
   },
   "automation": {
@@ -214,6 +219,7 @@ window.AITZAZ_DATA = {
       "Webhook Ingress Plugin (Inbound Automation — OpenClaw 2026.4.7+)",
       "Slack (Enterprise Channel — Corporate Buyers)",
       "Graphify (Knowledge Graph — Sales Intelligence)",
+      "Voice Worker (Authorized Aitzaz Voice → Voicebox)",
       "ChromaDB (Conversation History — L3 + L4)"
     ],
     "source": "workspace/TOOLS.md"
@@ -314,6 +320,13 @@ window.AITZAZ_DATA = {
       "description": "| Advantage | Impact |",
       "hasCode": false,
       "source": "skills/telegram-toolkit/SKILL.md"
+    },
+    {
+      "id": "voice-worker",
+      "title": "Voice Worker — Authorized Aitzaz Voice",
+      "description": "AITZAZ AI 2070 Voice Worker. Classifies VOICE_REQUEST intent, generates speech through VoiceService → Voicebox using Aitzaz's authorized voice profile only, requires owner approval for client outbound, and delivers audio only on authorized channels.",
+      "hasCode": true,
+      "source": "skills/voice-worker/SKILL.md"
     }
   ],
   "productKb": {
@@ -336,14 +349,17 @@ window.AITZAZ_DATA = {
   },
   "verification": {
     "validatorScript": "scripts/validate-template.sh",
-    "ranAt": "2026-08-17T23:41:06.244Z",
+    "ranAt": "2026-08-18T00:24:07.409Z",
     "passed": true,
     "checks": [
       "Required template files exist",
+      "Voice artifacts are gitignored",
       "Shell scripts parse cleanly",
       "Product KB JSON is valid",
       "Proforma invoice generator works",
       "Chroma memory smoke test works",
+      "Voice Worker tests passed",
+      "Aitzaz voice profile id is not hardcoded",
       "b2b_trade skill profile count is current",
       "OpenClaw config generation works",
       "Non-root OpenClaw workspace path generation works"
@@ -367,23 +383,18 @@ window.AITZAZ_DATA = {
   },
   "git": {
     "remote": "https://github.com/muhammadlai/Sara--OS.git",
-    "branch": "arena/01a01202-sara-os",
+    "branch": "arena/01a01239-sara-os",
     "activity": [
       {
-        "hash": "ebc3ba1",
+        "hash": "d33f7dd",
         "date": "2026-08-17",
-        "message": "AITZAZ AI 2070: migrate B2B SDR Agent Template intact + rebrand + dashboard"
-      },
-      {
-        "hash": "fbaaa58",
-        "date": "2026-08-17",
-        "message": "Initial commit"
+        "message": "AITZAZ AI 2070 — full repository migration, rebrand, and AI-OS dashboard"
       }
     ],
     "source": "git log"
   },
   "changelog": {
-    "latest": "2026-08-17 — AITZAZ AI 2070 transformation",
+    "latest": "2026-08-18 — Voice Worker (authorized Aitzaz voice via Voicebox)",
     "source": "CHANGELOG.md"
   },
   "future_phases": [

@@ -41,8 +41,9 @@ Built on [OpenClaw](https://openclaw.dev), battle-tested with real B2B export co
 │  TOOLS.md      → CRM, channels, integrations    │
 ├─────────────────────────────────────────────────┤
 │  Skills        → Extensible capabilities        │
+│  Voice Worker  → Authorized Aitzaz voice (Voicebox) │
 │  Product KB    → Your product catalog           │
-│  Cron Jobs     → 14 automated pipeline checks   │
+│  Cron Jobs     → 15 automated pipeline checks   │
 ├─────────────────────────────────────────────────┤
 │  OpenClaw Gateway (WhatsApp / Telegram / Email) │
 └─────────────────────────────────────────────────┘
@@ -216,6 +217,7 @@ Pre-built capabilities that extend your AI SDR:
 | **lead-discovery** | AI-driven lead discovery. Web search for potential buyers, ICP evaluation, CRM auto-entry. |
 | **quotation-generator** | Auto-generate PDF proforma invoices with company letterhead, multi-language support. |
 | **graphify** | Knowledge graph engine — map product relationships, customer intelligence, and market research into queryable graphs. Powered by [graphify](https://github.com/safishamsi/graphify). |
+| **voice-worker** | Authorized Aitzaz voice replies via a `VoiceService` abstraction over [Voicebox](https://github.com/jamiepine/voicebox.git) REST (`POST /speak`). Client outbound requires owner approval. Audio is never marked sent without a channel ack. |
 
 ### Skill Profiles
 
@@ -378,7 +380,33 @@ To auto-enable during deploy, set `IP_ISOLATE=true` in `config.sh`.
 
 ### AITZAZ AI 2070 Dashboard
 
-The repository ships with a futuristic AI-OS control dashboard (`dashboard/`). It renders live data generated from the real project files (workspace layers, skills, product KB, validation results) — no mock data. Sections for capabilities that do not exist yet are explicitly marked as future phases.
+The repository ships with a futuristic AI-OS control dashboard (`dashboard/`). It renders live data generated from the real project files (workspace layers, skills, product KB, validation results, Voice Center config) — no mock data. Sections for capabilities that do not exist yet are explicitly marked as future phases.
+
+### Voice Worker (Aitzaz authorized voice)
+
+AITZAZ AI 2070 can reply with **Aitzaz's own** Voicebox voice profile when a client asks for voice. Voicebox is not vendored — install it from [jamiepine/voicebox](https://github.com/jamiepine/voicebox.git) and keep it local.
+
+```
+MAIN BRAIN → CONVERSATION AGENT (VOICE_REQUEST)
+          → VOICE WORKER → VoiceService → Voicebox → Aitzaz profile → audio
+          → authorized channel only (Telegram / WhatsApp / Email / Teams / local)
+```
+
+```bash
+# Offline tests (mock Voicebox)
+npm test
+
+# Live Voicebox on this machine
+export VOICEBOX_BASE_URL=http://127.0.0.1:17493
+node skills/voice-worker/voice-worker.mjs health
+node skills/voice-worker/voice-worker.mjs bind    # resolves the real profile id
+node skills/voice-worker/voice-worker.mjs speak --text "Sure, happy to." --channel local --intro
+
+# Voice Center (dashboard + approval buttons)
+npm run voice:center
+```
+
+Create the **Aitzaz** profile inside Voicebox from **your own** voice sample. The repo never stores a fake profile id, recordings, or tokens. See `skills/voice-worker/INTEGRATION.md`.
 
 ```bash
 npm run dashboard   # regenerate dashboard/data.json from the actual project files

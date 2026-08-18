@@ -45,6 +45,8 @@
 - Stalled alert threshold: 5 business days
 - Quote approval: via WhatsApp chat
 - Weekly report: Monday 08:30
+- Voice replies: Aitzaz authorized Voicebox profile only; client outbound requires explicit approval
+- Voice notice: "Sir, client requested a voice reply."
 
 ## Competitors
 - {{competitor_1}}: {{competitor_1_notes}}

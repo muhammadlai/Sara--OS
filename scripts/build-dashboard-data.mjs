@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseSimpleYaml } from '../skills/voice-worker/yaml.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'dashboard');
@@ -86,7 +87,7 @@ const skills = existsSync(skillsDir)
           id: d.name,
           title: (md.match(/^# (.+)$/m) ?? [])[1] ?? d.name,
           description: fmDesc ?? firstPara ?? '',
-          hasCode: ['chroma.mjs', 'sm.mjs', 'deliver.sh'].some((f) => existsSync(join(skillsDir, d.name, f))),
+          hasCode: ['chroma.mjs', 'sm.mjs', 'deliver.sh', 'voice-service.mjs', 'voice-worker.mjs'].some((f) => existsSync(join(skillsDir, d.name, f))),
           source: `skills/${d.name}/SKILL.md`,
         };
       })
@@ -133,6 +134,40 @@ const activity = (gitLogRaw ? gitLogRaw.split('\n') : []).map((l) => {
 
 const changelogMd = read('CHANGELOG.md') ?? '';
 const latestChangelog = (changelogMd.match(/^## (?!Unreleased|\[)(.+)$/m) ?? [])[1] ?? null;
+
+/* ---------------- voice worker (real config + optional runtime status) ---------------- */
+const voiceYamlRaw = read('workspace/voice.yaml') || read('skills/voice-worker/voice.yaml') || '';
+const voiceCfg = voiceYamlRaw ? parseSimpleYaml(voiceYamlRaw) : {};
+const voiceRuntime = (() => {
+  const home = process.env.OPENCLAW_HOME || join(process.env.HOME || '', '.openclaw');
+  const statusFile = join(home, 'voice', 'status.json');
+  if (!existsSync(statusFile)) return null;
+  try { return JSON.parse(readFileSync(statusFile, 'utf8')); } catch { return null; }
+})();
+const voice = {
+  worker: 'VOICE WORKER',
+  worker_status: voiceRuntime?.status || (existsSync(join(ROOT, 'skills/voice-worker/voice-worker.mjs')) ? 'CONFIGURED' : 'MISSING'),
+  profile: {
+    name: voiceCfg.voice_profile?.name || 'Aitzaz',
+    owner: voiceCfg.voice_profile?.owner || 'Aitzaz',
+    language: voiceCfg.voice_profile?.language || 'en',
+    consent_confirmed: voiceCfg.voice_profile?.consent_confirmed === true,
+    enabled: voiceCfg.voice_profile?.enabled !== false,
+    id: voiceRuntime?.profile?.id || voiceCfg.voice_profile?.id || null,
+    bound: Boolean(voiceRuntime?.profile?.bound || voiceRuntime?.profile?.id),
+  },
+  voicebox: voiceRuntime?.voicebox || {
+    reachable: false,
+    base_url: voiceCfg.voicebox?.base_url || 'http://127.0.0.1:17493',
+    client_id: voiceCfg.voicebox?.client_id || 'aitzaz-ai-2070',
+    note: 'Voicebox is not queried at dashboard build time unless a prior voice-worker status snapshot exists.',
+  },
+  engines: voiceRuntime?.engines || [],
+  last_action: voiceRuntime?.last_action || null,
+  recent: voiceRuntime?.recent || [],
+  personality: voiceCfg.personality?.traits || [],
+  source: voiceYamlRaw ? (existsSync(join(ROOT, 'workspace/voice.yaml')) ? 'workspace/voice.yaml' : 'skills/voice-worker/voice.yaml') : 'missing',
+};
 
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [

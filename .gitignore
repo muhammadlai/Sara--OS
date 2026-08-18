@@ -29,3 +29,17 @@ Thumbs.db
 
 # Internal marketing & launch materials (not for public repo)
 docs/internal/
+
+# Voice Worker — never commit recordings, generated audio, or Voicebox tokens
+**/voice-samples/
+**/.aitzaz-voice/
+**/data/voice/
+skills/voice-worker/tmp/
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+*.aiff
+VOICEBOX_TOKEN
+.env.voice

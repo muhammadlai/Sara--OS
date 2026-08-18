@@ -111,7 +111,7 @@ check "OpenClaw home exists" "test -d '$REMOTE_OPENCLAW_HOME'"
 check "openclaw.json exists" "test -f '$REMOTE_OPENCLAW_HOME/openclaw.json'"
 check "openclaw.json permissions are private" "perm=\$(stat -c '%a' '$REMOTE_OPENCLAW_HOME/openclaw.json' 2>/dev/null || stat -f '%Lp' '$REMOTE_OPENCLAW_HOME/openclaw.json'); test \"\$perm\" = 600"
 check "Workspace context files installed" "for f in IDENTITY.md SOUL.md AGENTS.md USER.md MEMORY.md HEARTBEAT.md TOOLS.md; do test -f '$REMOTE_WORKSPACE_DIR/'\"\$f\" || exit 1; done"
-check "Local template skills installed" "for d in chroma-memory delivery-queue graphify lead-discovery quotation-generator sdr-humanizer supermemory telegram-toolkit; do test -f '$REMOTE_WORKSPACE_DIR/skills/'\"\$d\"'/SKILL.md' || exit 1; done"
+check "Local template skills installed" "for d in chroma-memory delivery-queue graphify lead-discovery quotation-generator sdr-humanizer supermemory telegram-toolkit voice-worker; do test -f '$REMOTE_WORKSPACE_DIR/skills/'\"\$d\"'/SKILL.md' || exit 1; done"
 check "Gateway service active" "systemctl --user is-active openclaw-gateway"
 check "Gateway health endpoint responds" "curl -fsS --max-time 5 'http://127.0.0.1:$GATEWAY_PORT/health'"
 

@@ -24,7 +24,7 @@ Turn any B2B export business into an AI-powered sales machine. Full-stack SDR th
 
 - **10-Stage Sales Pipeline**: Cold Lead → Engaged → Qualified → Proposal → Negotiation → Closed
 - **4-Layer Memory**: L1 pinned context, L2 session KV, L3 vector search, L4 CRM snapshots
-- **14 Pipeline Checks**: Auto heartbeat, follow-up reminders, lead scoring, pipeline reports
+- **15 Pipeline Checks**: Auto heartbeat, follow-up reminders, lead scoring, pipeline reports, Voice Worker health
 - **Multi-Channel**: WhatsApp, Telegram, Email — with channel-specific strategies
 - **WhatsApp IP Isolation**: Per-tenant Cloudflare WARP proxy for multi-tenant deployments
 - **Human-Like Conversations**: SDR humanizer skill for natural, trust-building messages
@@ -58,6 +58,7 @@ Architecture: `tenant → wireproxy (SOCKS5, ~4MB) → WARP account → unique C
 - **chroma-memory** — Per-turn conversation memory with ChromaDB
 - **telegram-toolkit** — Telegram-specific SDR strategies
 - **graphify** — Knowledge graph for product catalog, customer intelligence, and market research
+- **voice-worker** — Authorized Aitzaz voice via Voicebox REST (`VoiceService.speak`)
 
 ## Requirements
 

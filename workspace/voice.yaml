@@ -1,0 +1,62 @@
+# AITZAZ AI 2070 — authorized voice profile (workspace copy)
+# Source of truth also lives at skills/voice-worker/voice.yaml
+# The real Voicebox profile ID is NEVER invented here.
+
+voice_profile:
+  name: Aitzaz
+  owner: Aitzaz
+  language: en
+  enabled: true
+  consent_confirmed: true
+  purpose: AITZAZ AI 2070 Worker Agent
+  id: ""
+
+personality:
+  traits:
+    - professional
+    - natural
+    - confident
+    - friendly
+    - concise
+    - business-oriented
+  use_voicebox_personality_rewrite: true
+  disclosure: "This is Aitzaz AI speaking on behalf of Aitzaz."
+  include_disclosure_on_intro: true
+
+voicebox:
+  base_url: "http://127.0.0.1:17493"
+  client_id: "aitzaz-ai-2070"
+  preferred_engine: ""
+  timeout_ms: 120000
+
+approval:
+  client_outbound: require_approval
+  local_preview: auto
+  owner_channel: auto
+
+retention:
+  audio_ttl_hours: 24
+  keep_metadata: true
+
+channels:
+  telegram:
+    audio_operation: sendVoice
+    authorized: true
+  whatsapp:
+    audio_operation: sendVoiceNote
+    authorized: true
+  email:
+    audio_operation: attachAudio
+    authorized: true
+  teams:
+    audio_operation: uploadFile
+    authorized: true
+  linkedin:
+    audio_operation: none
+    authorized: false
+  web:
+    audio_operation: localPreview
+    authorized: true
+  local:
+    audio_operation: localPreview
+    authorized: true

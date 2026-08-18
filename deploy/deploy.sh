@@ -238,7 +238,7 @@ log "  openclaw.json deployed (permissions: 600)"
 
 # Upload workspace MD files
 WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")/workspace"
-for md in IDENTITY.md SOUL.md USER.md AGENTS.md MEMORY.md HEARTBEAT.md TOOLS.md; do
+for md in IDENTITY.md SOUL.md USER.md AGENTS.md MEMORY.md HEARTBEAT.md TOOLS.md voice.yaml; do
   if [ -f "$WORKSPACE_DIR/$md" ]; then
     remote_upload "$WORKSPACE_DIR/$md" "$REMOTE_WORKSPACE_DIR/$md"
     log "  $md deployed"
@@ -253,7 +253,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     remote "mkdir -p '$REMOTE_WORKSPACE_DIR/skills/$skill_name'"
     remote_upload "$skill_dir/SKILL.md" "$REMOTE_WORKSPACE_DIR/skills/$skill_name/SKILL.md"
     # Upload any script files (.mjs, .sh) alongside the SKILL.md
-    for script in "$skill_dir"*.mjs "$skill_dir"*.sh; do
+    for script in "$skill_dir"*.mjs "$skill_dir"*.sh "$skill_dir"*.yaml "$skill_dir"*.md; do
       [ -f "$script" ] && remote_upload "$script" "$REMOTE_WORKSPACE_DIR/skills/$skill_name/$(basename "$script")"
     done
     log "  skill/$skill_name deployed"

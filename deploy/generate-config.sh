@@ -196,7 +196,7 @@ $PROVIDERS
       "entries": {
         "boot-md": {
           "enabled": true,
-          "files": ["IDENTITY.md", "SOUL.md", "AGENTS.md", "USER.md", "MEMORY.md", "HEARTBEAT.md", "TOOLS.md"]
+          "files": ["IDENTITY.md", "SOUL.md", "AGENTS.md", "USER.md", "MEMORY.md", "HEARTBEAT.md", "TOOLS.md", "voice.yaml"]
         }
       }
     }

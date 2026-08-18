@@ -6,6 +6,23 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — Voice Worker (authorized Aitzaz voice via Voicebox)
+
+### Added
+- **Voice Worker skill** (`skills/voice-worker/`) — Conversation Agent classifies `VOICE_REQUEST`; Main Brain writes the real reply first; Voice Worker generates speech through `VoiceService` and the local [Voicebox](https://github.com/jamiepine/voicebox.git) REST API (`POST /speak` / `POST /generate`). Profile ids come from `GET /profiles` only.
+- **VoiceService abstraction** — rest of AITZAZ AI 2070 is not coupled to Voicebox internals. Emotion/speed map to Voicebox `instruct` because those fields are not on `SpeakRequest`.
+- **Authorized Aitzaz voice config** — `workspace/voice.yaml` + `skills/voice-worker/voice.yaml` (empty id, owner consent, no samples in git).
+- **Approval workflow** — owner notice "Sir, client requested a voice reply." APPROVE / EDIT / GENERATE / CANCEL. Client outbound is never auto-sent.
+- **Channel matrix** — Telegram / WhatsApp / Email / Teams authorized; LinkedIn unsupported. Delivery is `DELIVERY_CONFIRMED` only after an official channel ack.
+- **Voice Center** — dashboard panel + `npm run voice:center` for live status and approval buttons.
+- **Heartbeat #15** — Voicebox health, unbound profile, pending approvals, failed generations.
+- Tests: mock Voicebox in `npm test` (`skills/voice-worker/test/voice-worker.test.mjs`).
+
+### Security
+- `.gitignore` excludes recordings and generated audio. Optional `VOICEBOX_TOKEN` is env-only.
+
+---
+
 ## 2026-08-17 — AITZAZ AI 2070 transformation
 
 Repository migrated intact from the open-source B2B SDR Agent Template (v3.8.0, MIT) into its new home and reborn as **AITZAZ AI 2070** — owner: **Aitzaz**.

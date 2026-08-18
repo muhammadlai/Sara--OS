@@ -113,6 +113,15 @@ h2 .src{margin-left:auto; font-size:10px; color:var(--dim); letter-spacing:.5px;
   background:rgba(251,191,36,.05);
 }
 .future b{color:var(--amber)}
+.btn{
+  font-family:var(--mono); font-size:11px; letter-spacing:.8px; text-transform:uppercase;
+  border:1px solid var(--line); background:rgba(34,211,238,.08); color:var(--cyan);
+  padding:7px 10px; border-radius:8px; cursor:pointer; margin:0 6px 6px 0;
+}
+.btn:hover{border-color:var(--cyan)}
+.btn.warn{color:var(--amber);border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.08)}
+.btn.ok{color:var(--green);border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.08)}
+.btn.bad{color:var(--red);border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.08)}
 footer{
   padding:26px 42px 40px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11.5px;
   color:var(--dim); line-height:1.9;
@@ -159,7 +168,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -206,6 +215,59 @@ function ready(D){
       <div class="card"><h3>${esc(D.aiBrain.company)}</h3><p>Brand: ${esc(D.aiBrain.brand)}<br>Role: ${esc(D.app.role)}</p><span class="tag">workspace/IDENTITY.md</span></div>
       <div class="card"><h3>SOUL.md — Core Traits</h3><p>${D.aiBrain.soulTraits.map(esc).join('<br>')}</p><span class="tag">workspace/SOUL.md</span></div>
     </div>
+  </div></section>`;
+
+  const V = D.voice || {};
+  const liveNote = V.live ? 'live: /api/voice' : (V.source || 'skills/voice-worker/voice.yaml');
+  const stClass = V.worker_status === 'READY' ? 'ok' : V.worker_status === 'OFFLINE' ? 'warn' : '';
+  const jobs = (V.recent || []).map((j) => `
+    <div class="card" data-job="${esc(j.id)}">
+      <h3>${esc(j.client || 'Client')} <span class="chip ${j.verified ? 'ok' : (j.phase || '').includes('FAIL') ? 'warn' : 'cyan'}">${esc(j.phase || '—')}</span></h3>
+      <p>${esc(j.company || '—')} · ${esc(j.channel || '—')}<br>${esc((j.response_text || '').slice(0,160))}</p>
+      <span class="tag">${esc(j.approval || '')} · ${esc(j.delivery_status || '')} · ${esc(j.id || '')}</span>
+      ${j.approval === 'pending' ? `<div style="margin-top:10px">
+        <button class="btn ok" data-act="approve" data-id="${esc(j.id)}">Approve Voice</button>
+        <button class="btn" data-act="generate" data-id="${esc(j.id)}">Generate</button>
+        <button class="btn bad" data-act="cancel" data-id="${esc(j.id)}">Cancel</button>
+      </div>` : (j.approval === 'approved' && j.phase === 'VOICE_REQUESTED' ? `<div style="margin-top:10px">
+        <button class="btn" data-act="generate" data-id="${esc(j.id)}">Generate</button>
+      </div>` : '')}
+    </div>`).join('') || '<p class="mono" style="color:var(--dim)">No voice jobs stored on this machine yet.</p>';
+
+  const voice = `
+  <section id="voice"><div class="panel">${H('Voice Center', liveNote)}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${stClass}">${esc(V.worker_status || 'CONFIGURED')}</div><div class="l">Voice Worker</div></div>
+      <div class="stat"><div class="k">${esc(V.profile?.name || 'Aitzaz')}</div><div class="l">Voice Profile</div></div>
+      <div class="stat"><div class="k ${V.profile?.bound ? 'ok' : 'warn'}">${V.profile?.bound ? 'BOUND' : 'UNBOUND'}</div><div class="l">Voicebox ID</div></div>
+      <div class="stat"><div class="k ${V.voicebox?.reachable ? 'ok' : 'warn'}">${V.voicebox?.reachable ? 'UP' : 'OFFLINE'}</div><div class="l">Voicebox</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card">
+        <h3>Aitzaz Voice Profile</h3>
+        <p>Owner: ${esc(V.profile?.owner || 'Aitzaz')}<br>
+        Language: ${esc(V.profile?.language || 'en')}<br>
+        Consent: ${V.profile?.consent_confirmed ? 'confirmed' : 'missing'}<br>
+        Real profile id: <span class="mono">${esc(V.profile?.id || 'resolved from Voicebox GET /profiles — not hardcoded')}</span></p>
+        <span class="tag">workspace/voice.yaml</span>
+      </div>
+      <div class="card">
+        <h3>Last action</h3>
+        <p>${esc(V.last_action?.phase || 'none')}<br>
+        Channel: ${esc(V.last_action?.channel || '—')}<br>
+        Verified: ${V.last_action?.verified ? 'YES' : 'NO'}</p>
+        <span class="tag">${esc(V.last_action?.id || 'no generations on this host')}</span>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      ${(V.engines || []).slice(0,8).map((m) => `<span class="chip ${(m.downloaded || m.loaded) ? 'ok' : 'cyan'}">${esc(m.display_name || m.model_name || m)}</span>`).join('') || '<span class="chip warn">engines unknown until Voicebox /models/status responds</span>'}
+    </div>
+    <h2 style="margin-top:22px"><span class="ico"></span>Voice requests</h2>
+    <div class="grid g2" id="voice-jobs">${jobs}</div>
+    <p class="mono" style="margin-top:12px;color:var(--dim);font-size:11px">
+      Approval buttons work when this page is served by <code>npm run voice:center</code> (same-origin /api/voice).
+      Delivery is never marked sent unless the channel confirms.
+    </p>
   </div></section>`;
 
   const agents = `
@@ -302,8 +364,38 @@ function ready(D){
     sys + brain + agents + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
 }
 
-if (window.AITZAZ_DATA) ready(window.AITZAZ_DATA);
-else fetch('data.json').then(r => r.json()).then(ready).catch(() => { document.getElementById('nodata').hidden = false; });
+async function boot(){
+  let D = window.AITZAZ_DATA || null;
+  if (!D) {
+    try { D = await fetch('data.json').then((r) => r.json()); }
+    catch { document.getElementById('nodata').hidden = false; return; }
+  }
+  try {
+    const live = await fetch('/api/voice', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null);
+    if (live) {
+      D.voice = {
+        ...(D.voice || {}),
+        live: true,
+        worker_status: live.status,
+        profile: {
+          name: live.profile?.name,
+          owner: live.profile?.owner || 'Aitzaz',
+          id: live.profile?.id || null,
+          bound: live.profile?.bound,
+          consent_confirmed: live.profile?.consent_confirmed,
+          language: 'en',
+        },
+        voicebox: live.voicebox,
+        engines: live.engines,
+        last_action: live.last_action,
+        recent: live.recent,
+        source: 'live /api/voice',
+      };
+    }
+  } catch { /* static dashboard — Voicebox not queried */ }
+  ready(D);
+}
+boot();
 </script>
 </body>
 </html>

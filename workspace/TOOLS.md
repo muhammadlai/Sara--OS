@@ -379,6 +379,28 @@ python3 -m graphify query "Dubai fleet customer" --dfs --budget 1000
 - During BANT → check product fit from graph relationships
 - Weekly pipeline review → visualize customer clusters
 
+## Voice Worker (Authorized Aitzaz Voice → Voicebox)
+Local skill: `skills/voice-worker/`. Abstraction: `VoiceService.speak()` — other layers must not call Voicebox URLs.
+
+Voicebox is an external local studio (https://github.com/jamiepine/voicebox.git). Default API: `http://127.0.0.1:17493`. Integration is **REST** (`POST /speak`, `POST /generate`, `GET /profiles`, `GET /health`). MCP exists on Voicebox for other agents; AITZAZ uses REST.
+
+Authorized profile: `workspace/voice.yaml` — name **Aitzaz**, owner **Aitzaz**. The real profile id is resolved from Voicebox. Never invent one. Never commit voice samples or `VOICEBOX_TOKEN`.
+
+```bash
+node skills/voice-worker/voice-worker.mjs classify "Can you send me a voice message?"
+node skills/voice-worker/voice-worker.mjs request --client-text "..." --response "Sure, happy to." --channel telegram --client Ahmed
+node skills/voice-worker/voice-worker.mjs approve <id>
+node skills/voice-worker/voice-worker.mjs generate <id>
+node skills/voice-worker/voice-worker.mjs deliver <id>            # plan only
+node skills/voice-worker/voice-worker.mjs deliver <id> --confirmed --reference tg:99
+node skills/voice-worker/voice-worker.mjs health
+node skills/voice-worker/voice-worker.mjs bind
+```
+
+Env (system or `deploy/config.sh`, not workspace `.env`): `VOICEBOX_BASE_URL`, `VOICEBOX_CLIENT_ID=aitzaz-ai-2070`, optional `VOICEBOX_TOKEN`.
+
+Voice Center: `npm run voice:center` then open the dashboard Voice Center panel.
+
 ## ChromaDB (Conversation History — L3 + L4)
 Per-turn vector store with customer_id isolation and auto-tagging.
 - L3: Every conversation turn auto-stored with quote/commitment/objection tags

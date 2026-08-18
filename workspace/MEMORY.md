@@ -71,6 +71,7 @@ chroma:stats
 | Market signals / trends | — | — | — | — | 30 days (Supermemory) |
 | Pipeline status | — | — | — | Daily snapshot | Permanent |
 | Raw conversation turns | — | Compressed | Full text stored | — | Permanent (ChromaDB) |
+| Voice request / generation metadata | — | — | Job JSON (`$OPENCLAW_HOME/voice/jobs`) | — | Metadata kept; audio TTL 24h. Never store raw voice samples in git |
 
 ## Cross-Session Continuity Rules
 

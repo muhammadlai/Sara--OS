@@ -29,11 +29,19 @@ for file in \
   workspace/MEMORY.md workspace/HEARTBEAT.md workspace/TOOLS.md \
   deploy/config.sh.example deploy/deploy.sh deploy/doctor.sh deploy/generate-config.sh deploy/skill-profiles.sh \
   skills/chroma-memory/SKILL.md skills/chroma-memory/chroma.mjs \
+  skills/voice-worker/SKILL.md skills/voice-worker/voice-service.mjs \
+  skills/voice-worker/voice-worker.mjs skills/voice-worker/voice.yaml \
+  workspace/voice.yaml \
   product-kb/catalog.json product-kb/scripts/generate-pi.js
 do
   require_file "$file"
 done
 pass "Required template files exist"
+
+if ! grep -q 'voice-samples' "$ROOT/.gitignore"; then
+  fail "gitignore must exclude voice samples and generated audio"
+fi
+pass "Voice artifacts are gitignored"
 
 while IFS= read -r script; do
   bash -n "$script"
@@ -65,6 +73,17 @@ OPENCLAW_HOME="$TMP_DIR/openclaw" node "$ROOT/skills/chroma-memory/chroma.mjs" s
   --limit 1 > "$TMP_DIR/chroma-search.json"
 jq -e 'length == 1 and .[0].has_quote == true and .[0].has_commitment == true' "$TMP_DIR/chroma-search.json" >/dev/null
 pass "Chroma memory smoke test works"
+
+node --test "$ROOT/skills/voice-worker/test/voice-worker.test.mjs"
+pass "Voice Worker tests passed"
+
+node --input-type=module -e "
+import { readFileSync } from 'fs';
+import { parseSimpleYaml } from '$ROOT/skills/voice-worker/yaml.mjs';
+const id = parseSimpleYaml(readFileSync('$ROOT/skills/voice-worker/voice.yaml','utf8')).voice_profile?.id;
+if (id) { console.error('hardcoded id', id); process.exit(1); }
+"
+pass "Aitzaz voice profile id is not hardcoded"
 
 source "$ROOT/deploy/skill-profiles.sh"
 skill_list="$(get_skills_for_profile b2b_trade) chromadb"
