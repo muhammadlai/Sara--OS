@@ -16,4 +16,15 @@ export JINA_API_KEY=...          # never commit
 node worker/cli.mjs research --url https://example.com --lead acme
 node worker/cli.mjs discover --query "fleet buyers UAE"
 npm run test:worker
+
+## W4 Reply Intelligence
+
+```bash
+node worker/cli.mjs classify --text "Please unsubscribe"
+node worker/cli.mjs replies
+```
+
+Without `GMAIL_ADAPTER_URL` or an injected inbox, check returns `REPLY_CHECK_FAILED`.
+Without `NOTIFY_WEBHOOK_URL`, important replies log `NOTIFICATION_FAILED`.
+Classifier method is `rules` — not an AI model.
 ```

@@ -168,7 +168,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -362,7 +362,63 @@ function ready(D){
   </div></section>`;
 
   document.getElementById('main').innerHTML =
-    sys + brain + agents + voice + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+    sys + brain + agents + voice + replies + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+
+  document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
+    const btn = ev.target.closest('button[data-act]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const act = btn.getAttribute('data-act');
+    try {
+      const r = await fetch(`/api/voice/jobs/${encodeURIComponent(id)}/${act}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      location.reload();
+    } catch {
+      btn.textContent = 'Needs Voice Center';
+      btn.disabled = true;
+    }
+  });
+}
+
+async function boot(){
+  let D = window.AITZAZ_DATA || null;
+  if (!D) {
+    try { D = await fetch('data.json').then((r) => r.json()); }
+    catch { document.getElementById('nodata').hidden = false; return; }
+  }
+  try {
+    const live = await fetch('/api/voice', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null);
+    if (live) {
+      D.voice = {
+        ...(D.voice || {}),
+        live: true,
+        worker_status: live.worker_status || 'READY',
+        voicebox_status: live.voicebox_status || (live.voicebox?.reachable ? 'CONNECTED' : 'DISCONNECTED'),
+        profile_status: live.profile_status || (live.profile?.bound ? 'Aitzaz' : 'NOT CONFIGURED'),
+        profile: {
+          name: live.profile?.name,
+          owner: live.profile?.owner || 'Aitzaz',
+          id: live.profile?.id || null,
+          bound: live.profile?.bound,
+          consent_confirmed: live.profile?.consent_confirmed,
+          language: 'en',
+          label: live.profile?.label,
+        },
+        voicebox: live.voicebox,
+        engines: live.engines,
+        last_action: live.last_action,
+        recent: live.recent,
+        source: 'live /api/voice',
+      };
+    }
+  } catch { /* static dashboard — Voicebox not queried */ }
+  ready(D);
+}
+boot();
+</script>
+</body>
+</html>
+in + agents + voice + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
 
   document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('button[data-act]');

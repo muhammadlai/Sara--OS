@@ -169,6 +169,18 @@ node worker/cli.mjs note --lead acme --text "Met at a trade show" # source:manua
 Ledger events: `RESEARCH_LOGGED`, `RESEARCH_FAILED`, `DISCOVERY_SOURCE`, `SIGNALS_UPDATED`.
 Stage becomes `researched` only after a successful Jina call. Failures (missing key, network, 401, timeout, zero results) never advance the stage.
 
+## W4 Reply Intelligence
+Rule-based classifier (`worker/classifier.mjs`) + inbox adapter (`worker/gmail.mjs`) + notifier (`worker/notify.mjs`).
+W3 Gmail OAuth is **not** in this repo. Set `GMAIL_ADAPTER_URL` to an authorized inbox HTTP adapter, or inject `listInbox`. Unconfigured inbox → `REPLY_CHECK_FAILED` / `gmail_unavailable`.
+
+```bash
+node worker/cli.mjs classify --subject "Re: quote" --text "What is the price?"
+node worker/cli.mjs replies            # REPLY_CHECK_FAILED unless adapter configured
+node worker/cli.mjs replies-status
+```
+
+`OPT_OUT` sets `do_not_contact` and blocks automated outreach. Notifications require `NOTIFY_WEBHOOK_URL` or an injected adapter; otherwise `NOTIFICATION_FAILED`.
+
 ## Jina AI (Web Search + Content Extraction)
 For proactive lead discovery and company research.
 

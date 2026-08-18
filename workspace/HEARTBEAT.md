@@ -53,7 +53,9 @@ Found: Report per lead-discovery skill output format.
 None: Skip.
 
 ## 9. Gmail Inbox Monitor (Every heartbeat)
-Check Gmail for new client replies:
+Run W4: `node worker/cli.mjs replies` then `replies-status`.
+If inbox adapter is missing: `REPLY_CHECK_FAILED` / `gmail_unavailable` — do not invent replies.
+Check Gmail for new client replies only through the authorized adapter:
 - Match sender email to CRM records
 - If match found: Update last_contact, notify owner of reply
 - If new sender with business inquiry: Create new CRM record, begin qualification

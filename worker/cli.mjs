@@ -75,11 +75,25 @@ export async function main(argv = process.argv.slice(2)) {
     case 'lead':
       print(engine.ledger.readLead(opts.lead || opts._[1]));
       break;
+    case 'classify':
+      print(classifyReply({
+        subject: opts.subject || '',
+        body: opts.text || opts.body || opts._.slice(1).join(' '),
+      }));
+      break;
+    case 'replies': {
+      const replies = createReplyWorker({ home: opts.home });
+      print(await replies.checkInbox({ since: opts.since }));
+      break;
+    }
+    case 'replies-status':
+      print(createReplyWorker({ home: opts.home }).summarize());
+      break;
     default:
       print({
-        usage: 'node worker/cli.mjs <research|search|discover|note|ledger|lead>',
+        usage: 'node worker/cli.mjs <research|search|discover|note|ledger|lead|classify|replies|replies-status>',
         dry_run: 'discover is dry-run unless --apply',
-        env: ['JINA_API_KEY'],
+        env: ['JINA_API_KEY', 'GMAIL_ADAPTER_URL', 'NOTIFY_WEBHOOK_URL'],
       });
   }
 }

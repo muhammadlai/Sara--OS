@@ -171,6 +171,44 @@ const voice = {
   source: voiceYamlRaw ? (existsSync(join(ROOT, 'workspace/voice.yaml')) ? 'workspace/voice.yaml' : 'skills/voice-worker/voice.yaml') : 'missing',
 };
 
+/* ---------------- W4 reply intelligence (module + optional local ledger) ---------------- */
+const w4Present = existsSync(join(ROOT, 'worker/replies.mjs')) && existsSync(join(ROOT, 'worker/classifier.mjs'));
+const w4Runtime = (() => {
+  const home = process.env.OPENCLAW_HOME || join(process.env.HOME || '', '.openclaw');
+  const ledgerFile = join(home, 'worker', 'ledger.jsonl');
+  if (!existsSync(ledgerFile)) return null;
+  try {
+    const rows = readFileSync(ledgerFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    const classified = rows.filter((r) => r.event === 'REPLY_CLASSIFIED');
+    return {
+      replies: classified.slice(-12).map((r) => ({
+        classification: r.classification, confidence: r.confidence, lead_id: r.lead_id,
+        subject: r.subject || null, timestamp: r.timestamp, message_id: r.message_id || null,
+      })),
+      unmatched: rows.filter((r) => r.event === 'REPLY_UNMATCHED').length,
+      opt_outs: rows.filter((r) => r.event === 'OPT_OUT_RECORDED').length,
+      notifications_sent: rows.filter((r) => r.event === 'NOTIFICATION_SENT').length,
+      notifications_failed: rows.filter((r) => r.event === 'NOTIFICATION_FAILED').length,
+      errors: rows.filter((r) => r.event === 'REPLY_CHECK_FAILED').slice(-5),
+    };
+  } catch { return null; }
+})();
+const replies = {
+  worker: 'W4 REPLY INTELLIGENCE',
+  present: w4Present,
+  inbox: process.env.GMAIL_ADAPTER_URL ? 'ADAPTER_URL' : 'NOT CONFIGURED',
+  notifier: process.env.NOTIFY_WEBHOOK_URL ? 'WEBHOOK' : 'NOT CONFIGURED',
+  method: 'rules',
+  categories: ['INTERESTED', 'QUESTION', 'PRICE_REQUEST', 'FOLLOW_UP', 'NOT_INTERESTED', 'OPT_OUT', 'WRONG_PERSON', 'OUT_OF_OFFICE', 'UNKNOWN'],
+  recent: w4Runtime?.replies || [],
+  unmatched: w4Runtime?.unmatched || 0,
+  opt_outs: w4Runtime?.opt_outs || 0,
+  notifications_sent: w4Runtime?.notifications_sent || 0,
+  notifications_failed: w4Runtime?.notifications_failed || 0,
+  errors: w4Runtime?.errors || [],
+  source: 'worker/replies.mjs + worker/classifier.mjs',
+};
+
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [
   { area: 'SDR / Work', item: 'Live CRM pipeline metrics (requires a connected Google Sheets / Notion CRM — configure deploy/config.sh)' },
@@ -205,6 +243,8 @@ const data = {
   security,
   git: { remote: gitRemote, branch: gitBranch, activity, source: 'git log' },
   changelog: { latest: latestChangelog, source: 'CHANGELOG.md' },
+  voice,
+  replies,
   future_phases,
 };
 

@@ -1,5 +1,5 @@
 window.AITZAZ_DATA = {
-  "generatedAt": "2026-08-18T00:30:46.842Z",
+  "generatedAt": "2026-08-18T07:35:07.674Z",
   "app": {
     "name": "AITZAZ AI 2070",
     "tagline": "A futuristic AI Operating System for B2B sales",
@@ -35,7 +35,7 @@ window.AITZAZ_DATA = {
     },
     "HEARTBEAT": {
       "exists": true,
-      "bytes": 5227,
+      "bytes": 5648,
       "source": "workspace/HEARTBEAT.md"
     },
     "MEMORY": {
@@ -45,7 +45,7 @@ window.AITZAZ_DATA = {
     },
     "TOOLS": {
       "exists": true,
-      "bytes": 22721,
+      "bytes": 24233,
       "source": "workspace/TOOLS.md"
     }
   },
@@ -212,6 +212,8 @@ window.AITZAZ_DATA = {
       "Control Dashboard",
       "Telegram (Strategic Channel — No Window Limits)",
       "Gmail (Email Outreach + Inbox Monitoring)",
+      "W2 Discovery + Research Worker (new implementation)",
+      "W4 Reply Intelligence",
       "Jina AI (Web Search + Content Extraction)",
       "Supermemory (Research Storage — L1 complement)",
       "Active Memory Plugin (Auto Context Before Replies — OpenClaw 2026.4.10+)",
@@ -349,7 +351,7 @@ window.AITZAZ_DATA = {
   },
   "verification": {
     "validatorScript": "scripts/validate-template.sh",
-    "ranAt": "2026-08-18T00:30:46.833Z",
+    "ranAt": "2026-08-18T07:35:07.663Z",
     "passed": true,
     "checks": [
       "Required template files exist",
@@ -359,6 +361,8 @@ window.AITZAZ_DATA = {
       "Proforma invoice generator works",
       "Chroma memory smoke test works",
       "Voice Worker tests passed",
+      "W2 discovery/research tests passed",
+      "W4 reply classifier tests passed",
       "Aitzaz voice profile id is not hardcoded",
       "b2b_trade skill profile count is current",
       "OpenClaw config generation works",
@@ -386,6 +390,16 @@ window.AITZAZ_DATA = {
     "branch": "arena/01a01239-sara-os",
     "activity": [
       {
+        "hash": "1d81e2a",
+        "date": "2026-08-18",
+        "message": "feat(worker): add discovery and research agents"
+      },
+      {
+        "hash": "10d5147",
+        "date": "2026-08-18",
+        "message": "feat: integrate Voice Worker and Voicebox into AITZAZ AI 2070"
+      },
+      {
         "hash": "a10ec54",
         "date": "2026-08-18",
         "message": "Add Voice Worker: authorized Aitzaz voice via Voicebox REST"
@@ -399,8 +413,66 @@ window.AITZAZ_DATA = {
     "source": "git log"
   },
   "changelog": {
-    "latest": "2026-08-18 — Voice Worker (authorized Aitzaz voice via Voicebox)",
+    "latest": "2026-08-18 — W4 reply classifier + notifications",
     "source": "CHANGELOG.md"
+  },
+  "voice": {
+    "worker": "VOICE WORKER",
+    "worker_status": "READY",
+    "voicebox_status": "DISCONNECTED",
+    "profile_status": "NOT CONFIGURED",
+    "profile": {
+      "name": "Aitzaz",
+      "owner": "Aitzaz",
+      "language": "en",
+      "consent_confirmed": true,
+      "enabled": true,
+      "id": null,
+      "bound": false
+    },
+    "voicebox": {
+      "reachable": false,
+      "base_url": "http://127.0.0.1:17493",
+      "client_id": "aitzaz-ai-2070",
+      "note": "Voicebox is not queried at dashboard build time unless a prior voice-worker status snapshot exists."
+    },
+    "engines": [],
+    "last_action": null,
+    "recent": [],
+    "personality": [
+      "professional",
+      "natural",
+      "confident",
+      "friendly",
+      "concise",
+      "business-oriented"
+    ],
+    "source": "workspace/voice.yaml"
+  },
+  "replies": {
+    "worker": "W4 REPLY INTELLIGENCE",
+    "present": true,
+    "inbox": "NOT CONFIGURED",
+    "notifier": "NOT CONFIGURED",
+    "method": "rules",
+    "categories": [
+      "INTERESTED",
+      "QUESTION",
+      "PRICE_REQUEST",
+      "FOLLOW_UP",
+      "NOT_INTERESTED",
+      "OPT_OUT",
+      "WRONG_PERSON",
+      "OUT_OF_OFFICE",
+      "UNKNOWN"
+    ],
+    "recent": [],
+    "unmatched": 0,
+    "opt_outs": 0,
+    "notifications_sent": 0,
+    "notifications_failed": 0,
+    "errors": [],
+    "source": "worker/replies.mjs + worker/classifier.mjs"
   },
   "future_phases": [
     {

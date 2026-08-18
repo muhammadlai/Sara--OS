@@ -6,6 +6,12 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W4 reply classifier + notifications
+
+### Added
+- Rule-based reply classifier, thread matching, opt-out suppression, fail-closed notifications, Reply Center on the existing dashboard.
+- Inbox is an injectable authorized adapter (`GMAIL_ADAPTER_URL`). Unconfigured Gmail is `REPLY_CHECK_FAILED`, never a fake inbox.
+
 ## 2026-08-18 — W2 discovery + research worker
 
 ### Added
