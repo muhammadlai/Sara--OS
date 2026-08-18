@@ -6,6 +6,12 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — W5 multi-channel outreach
+
+### Added
+- Email / Teams / LinkedIn adapters with fail-closed statuses. LinkedIn without an official API is `MANUAL_ASSIST_REQUIRED`, never sent.
+- Approval, opt-out, rate limits, duplicate prevention, Outreach Center on the existing dashboard.
+
 ## 2026-08-18 — W4 reply classifier + notifications
 
 ### Added

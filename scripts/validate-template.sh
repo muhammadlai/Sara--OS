@@ -34,6 +34,7 @@ for file in \
   workspace/voice.yaml \
   worker/research.mjs worker/discovery.mjs worker/ledger.mjs worker/cli.mjs worker/test-research.mjs \
   worker/replies.mjs worker/classifier.mjs worker/gmail.mjs worker/notify.mjs worker/test-replies.mjs \
+  worker/adapters.mjs worker/outreach.mjs worker/test-outreach.mjs \
   product-kb/catalog.json product-kb/scripts/generate-pi.js
 do
   require_file "$file"
@@ -84,6 +85,9 @@ pass "W2 discovery/research tests passed"
 
 node --test "$ROOT/worker/test-replies.mjs"
 pass "W4 reply classifier tests passed"
+
+node --test "$ROOT/worker/test-outreach.mjs"
+pass "W5 multi-channel outreach tests passed"
 
 node --input-type=module -e "
 import { readFileSync } from 'fs';

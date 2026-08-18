@@ -181,6 +181,24 @@ node worker/cli.mjs replies-status
 
 `OPT_OUT` sets `do_not_contact` and blocks automated outreach. Notifications require `NOTIFY_WEBHOOK_URL` or an injected adapter; otherwise `NOTIFICATION_FAILED`.
 
+## W5 Multi-channel outreach
+`worker/outreach.mjs` + `worker/adapters.mjs`. Approval required. Opt-out (`outreachAllowed`) blocks every channel.
+
+| Channel | Env | Honest idle status |
+|---------|-----|--------------------|
+| Email | `EMAIL_ADAPTER_URL` / `GMAIL_SEND_URL` | `ADAPTER_UNAVAILABLE` |
+| Teams | `TEAMS_ACCESS_TOKEN` (Microsoft Graph) | `NOT_AUTHORIZED` |
+| LinkedIn | official `LINKEDIN_ACCESS_TOKEN` / `LINKEDIN_ADAPTER_URL` only | `MANUAL_ASSIST` — never fake sent |
+
+```bash
+node worker/cli.mjs prepare --lead acme --channel email
+node worker/cli.mjs approve-outreach --lead acme --fingerprint <fp>
+node worker/cli.mjs send --lead acme --fingerprint <fp>
+node worker/cli.mjs outreach-status
+```
+
+`OUTREACH_SENT` only after the provider returns a message id.
+
 ## Jina AI (Web Search + Content Extraction)
 For proactive lead discovery and company research.
 

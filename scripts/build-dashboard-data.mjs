@@ -209,6 +209,38 @@ const replies = {
   source: 'worker/replies.mjs + worker/classifier.mjs',
 };
 
+const w5Present = existsSync(join(ROOT, 'worker/outreach.mjs')) && existsSync(join(ROOT, 'worker/adapters.mjs'));
+const outreachRuntime = (() => {
+  const home = process.env.OPENCLAW_HOME || join(process.env.HOME || '', '.openclaw');
+  const ledgerFile = join(home, 'worker', 'ledger.jsonl');
+  if (!existsSync(ledgerFile)) return null;
+  try {
+    const rows = readFileSync(ledgerFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    return {
+      sent: rows.filter((r) => r.event === 'OUTREACH_SENT').slice(-12),
+      failed: rows.filter((r) => r.event === 'OUTREACH_FAILED').length,
+      blocked: rows.filter((r) => r.event === 'OUTREACH_BLOCKED').length,
+      pending: rows.filter((r) => r.event === 'OUTREACH_PENDING_APPROVAL').length,
+      manual: rows.filter((r) => r.event === 'OUTREACH_MANUAL_ASSIST').length,
+      rate_limited: rows.filter((r) => r.event === 'RATE_LIMITED').length,
+    };
+  } catch { return null; }
+})();
+const outreach = {
+  worker: 'W5 MULTI-CHANNEL OUTREACH',
+  present: w5Present,
+  email: process.env.EMAIL_ADAPTER_URL || process.env.GMAIL_SEND_URL ? 'ADAPTER_URL' : 'ADAPTER_UNAVAILABLE',
+  teams: process.env.TEAMS_ACCESS_TOKEN ? 'AUTHORIZED' : 'NOT_AUTHORIZED',
+  linkedin: (process.env.LINKEDIN_ACCESS_TOKEN || process.env.LINKEDIN_ADAPTER_URL) ? 'AUTHORIZED' : 'MANUAL_ASSIST',
+  sent: outreachRuntime?.sent || [],
+  failed: outreachRuntime?.failed || 0,
+  blocked: outreachRuntime?.blocked || 0,
+  pending: outreachRuntime?.pending || 0,
+  manual: outreachRuntime?.manual || 0,
+  rate_limited: outreachRuntime?.rate_limited || 0,
+  source: 'worker/outreach.mjs + worker/adapters.mjs',
+};
+
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [
   { area: 'SDR / Work', item: 'Live CRM pipeline metrics (requires a connected Google Sheets / Notion CRM — configure deploy/config.sh)' },
@@ -245,6 +277,7 @@ const data = {
   changelog: { latest: latestChangelog, source: 'CHANGELOG.md' },
   voice,
   replies,
+  outreach,
   future_phases,
 };
 

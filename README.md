@@ -220,6 +220,7 @@ Pre-built capabilities that extend your AI SDR:
 | **voice-worker** | Authorized Aitzaz voice replies via a `VoiceService` abstraction over [Voicebox](https://github.com/jamiepine/voicebox.git) REST (`POST /speak`). Client outbound requires owner approval. Audio is never marked sent without a channel ack. |
 | **worker (W2)** | Discovery + research via Jina (`worker/cli.mjs`). Dry-run by default. Never invents results. |
 | **worker (W4)** | Reply classifier + opt-out + notifications. No invented Gmail messages. |
+| **worker (W5)** | Email / Teams / LinkedIn outreach. Provider confirmation required. LinkedIn defaults to manual-assist. |
 
 ### Skill Profiles
 

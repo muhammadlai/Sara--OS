@@ -27,4 +27,13 @@ node worker/cli.mjs replies
 Without `GMAIL_ADAPTER_URL` or an injected inbox, check returns `REPLY_CHECK_FAILED`.
 Without `NOTIFY_WEBHOOK_URL`, important replies log `NOTIFICATION_FAILED`.
 Classifier method is `rules` — not an AI model.
+
+## W5 Outreach
+
+```bash
+node worker/cli.mjs prepare --lead acme --channel email
+node worker/cli.mjs send --lead acme --fingerprint <fp>
+```
+
+Unconfigured Email = `ADAPTER_UNAVAILABLE`. Teams without `TEAMS_ACCESS_TOKEN` = `NOT_AUTHORIZED`. LinkedIn without an official API = `MANUAL_ASSIST_REQUIRED` (never `OUTREACH_SENT`).
 ```

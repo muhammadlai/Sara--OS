@@ -168,7 +168,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -271,6 +271,55 @@ function ready(D){
     </p>
   </div></section>`;
 
+  const R = D.replies || {};
+  const replyCards = (R.recent || []).map((r) => `
+    <div class="card">
+      <h3>${esc(r.classification || 'UNKNOWN')} <span class="chip ${r.classification === 'OPT_OUT' ? 'warn' : r.classification === 'INTERESTED' ? 'ok' : 'cyan'}">${esc(r.confidence ?? '—')}</span></h3>
+      <p>Lead: ${esc(r.lead_id || '—')}<br>Subject: ${esc(r.subject || '—')}<br>${esc(r.timestamp || '')}</p>
+      <span class="tag">${esc(r.message_id || '')}</span>
+    </div>`).join('') || '<p class="mono" style="color:var(--dim)">No classified replies on this host yet. Inbox is not queried at static build time.</p>';
+  const replies = `
+  <section id="replies"><div class="panel">${H('Reply Center', R.source || 'worker/replies.mjs')}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${R.present ? 'ok' : 'warn'}">${R.present ? 'READY' : 'MISSING'}</div><div class="l">W4 Classifier</div></div>
+      <div class="stat"><div class="k ${R.inbox === 'NOT CONFIGURED' ? 'warn' : 'ok'}">${esc(R.inbox || 'NOT CONFIGURED')}</div><div class="l">Inbox Adapter</div></div>
+      <div class="stat"><div class="k ${R.notifier === 'NOT CONFIGURED' ? 'warn' : 'ok'}">${esc(R.notifier || 'NOT CONFIGURED')}</div><div class="l">Notifications</div></div>
+      <div class="stat"><div class="k">${R.opt_outs || 0}</div><div class="l">Opt-outs</div></div>
+    </div>
+    <div style="margin-top:12px">
+      ${(R.categories || []).map((c) => `<span class="chip cyan">${esc(c)}</span>`).join('')}
+    </div>
+    <p class="mono" style="margin-top:10px;font-size:11px;color:var(--dim)">
+      Method: ${esc(R.method || 'rules')} (not an AI model).
+      Unmatched: ${R.unmatched || 0} · Notify sent: ${R.notifications_sent || 0} · Notify failed: ${R.notifications_failed || 0}.
+    </p>
+    <h2 style="margin-top:18px"><span class="ico"></span>Recent classified replies</h2>
+    <div class="grid g2">${replyCards}</div>
+  </div></section>`;
+
+  const O = D.outreach || {};
+  const sentCards = (O.sent || []).map((s) => `
+    <div class="card">
+      <h3>${esc(s.channel || '—')} <span class="chip ok">SENT</span></h3>
+      <p>Lead ${esc(s.lead_id || '—')}<br>${esc(s.provider_message_id || '')}<br>${esc(s.timestamp || '')}</p>
+    </div>`).join('') || '<p class="mono" style="color:var(--dim)">No provider-confirmed sends on this host.</p>';
+  const outreach = `
+  <section id="outreach"><div class="panel">${H('Outreach Center', O.source || 'worker/outreach.mjs')}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${O.present ? 'ok' : 'warn'}">${O.present ? 'READY' : 'MISSING'}</div><div class="l">W5 Outreach</div></div>
+      <div class="stat"><div class="k ${O.email === 'ADAPTER_UNAVAILABLE' ? 'warn' : 'ok'}">${esc(O.email || 'ADAPTER_UNAVAILABLE')}</div><div class="l">Email</div></div>
+      <div class="stat"><div class="k ${O.teams === 'AUTHORIZED' ? 'ok' : 'warn'}">${esc(O.teams || 'NOT_AUTHORIZED')}</div><div class="l">Teams</div></div>
+      <div class="stat"><div class="k ${O.linkedin === 'AUTHORIZED' ? 'ok' : 'warn'}">${esc(O.linkedin || 'MANUAL_ASSIST')}</div><div class="l">LinkedIn</div></div>
+    </div>
+    <p class="mono" style="margin-top:12px;font-size:11px;color:var(--dim)">
+      Pending approval: ${O.pending || 0} · Blocked: ${O.blocked || 0} · Failed: ${O.failed || 0} ·
+      Manual-assist: ${O.manual || 0} · Rate-limited: ${O.rate_limited || 0}.
+      SEND_CONFIRMED only after the provider returns a message id.
+    </p>
+    <h2 style="margin-top:18px"><span class="ico"></span>Confirmed sends</h2>
+    <div class="grid g2">${sentCards}</div>
+  </div></section>`;
+
   const agents = `
   <section id="agents"><div class="panel">${H('Agents — Sales Pipeline', D.agents.source)}
     <div class="list">
@@ -362,63 +411,7 @@ function ready(D){
   </div></section>`;
 
   document.getElementById('main').innerHTML =
-    sys + brain + agents + voice + replies + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
-
-  document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
-    const btn = ev.target.closest('button[data-act]');
-    if (!btn) return;
-    const id = btn.getAttribute('data-id');
-    const act = btn.getAttribute('data-act');
-    try {
-      const r = await fetch(`/api/voice/jobs/${encodeURIComponent(id)}/${act}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      location.reload();
-    } catch {
-      btn.textContent = 'Needs Voice Center';
-      btn.disabled = true;
-    }
-  });
-}
-
-async function boot(){
-  let D = window.AITZAZ_DATA || null;
-  if (!D) {
-    try { D = await fetch('data.json').then((r) => r.json()); }
-    catch { document.getElementById('nodata').hidden = false; return; }
-  }
-  try {
-    const live = await fetch('/api/voice', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null);
-    if (live) {
-      D.voice = {
-        ...(D.voice || {}),
-        live: true,
-        worker_status: live.worker_status || 'READY',
-        voicebox_status: live.voicebox_status || (live.voicebox?.reachable ? 'CONNECTED' : 'DISCONNECTED'),
-        profile_status: live.profile_status || (live.profile?.bound ? 'Aitzaz' : 'NOT CONFIGURED'),
-        profile: {
-          name: live.profile?.name,
-          owner: live.profile?.owner || 'Aitzaz',
-          id: live.profile?.id || null,
-          bound: live.profile?.bound,
-          consent_confirmed: live.profile?.consent_confirmed,
-          language: 'en',
-          label: live.profile?.label,
-        },
-        voicebox: live.voicebox,
-        engines: live.engines,
-        last_action: live.last_action,
-        recent: live.recent,
-        source: 'live /api/voice',
-      };
-    }
-  } catch { /* static dashboard — Voicebox not queried */ }
-  ready(D);
-}
-boot();
-</script>
-</body>
-</html>
-in + agents + voice + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
+    sys + brain + agents + voice + replies + outreach + tasks + tools + memory + skills + sdr + automation + security + verification + github + activity + future;
 
   document.getElementById('voice-jobs')?.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('button[data-act]');

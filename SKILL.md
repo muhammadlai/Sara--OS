@@ -61,6 +61,7 @@ Architecture: `tenant → wireproxy (SOCKS5, ~4MB) → WARP account → unique C
 - **voice-worker** — Authorized Aitzaz voice via Voicebox REST (`VoiceService.speak`)
 - **worker (W2)** — Jina discovery/research (`worker/cli.mjs`); dry-run default; no fabricated results
 - **worker (W4)** — Reply classifier, opt-out, notifications; no invented inbox mail
+- **worker (W5)** — Multi-channel outreach; send only after provider confirmation
 
 ## Requirements
 
