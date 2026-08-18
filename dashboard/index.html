@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AITZAZ AI 2070 — Control Dashboard</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#22d3ee">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{
   --bg:#04060e; --bg2:#070b18; --panel:rgba(13,20,40,.72); --line:rgba(56,189,248,.16);
@@ -168,7 +171,7 @@ footer{
 <script src="data.js"></script>
 <script>
 const SECTIONS = [
-  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['operations','Operations'],['tasks','Tasks'],
+  ['system','System Status'],['brain','AI Brain'],['agents','Agents'],['workers','Worker Center'],['voice','Voice Center'],['replies','Reply Center'],['outreach','Outreach'],['operations','Operations'],['tasks','Tasks'],
   ['tools','Tools'],['memory','Memory'],['skills','Skills'],['sdr','SDR / Work'],
   ['automation','Automation'],['security','Security'],['verification','Verification'],
   ['github','GitHub'],['activity','Activity Logs'],['future','Future Phases'],
@@ -344,6 +347,30 @@ function ready(D){
       Timezone: ${esc(P.timezone || 'UTC')} · Mode: ${esc(P.mode || 'no completed run on this host')}.
       Confirmed sends are provider-confirmed only. NEVER_RUN means no local ledger run exists — not a fake idle success.
     </p>
+  </div></section>`;
+
+  const W = D.workers || {};
+  const workerCards = (W.modules || []).map((m) => `
+    <div class="card">
+      <h3>${esc(m.id)} <span class="chip ${m.present ? 'ok' : 'warn'}">${esc(m.status || (m.present ? 'PRESENT' : 'MISSING'))}</span></h3>
+      <p>${esc(m.role || '')}</p>
+      <span class="tag">${esc(m.source || '')}</span>
+    </div>`).join('') || '<p class="mono" style="color:var(--dim)">Worker modules not listed in dashboard data.</p>';
+  const wfChips = (W.workflows || []).map((w) => `<span class="chip cyan">${esc(w)}</span>`).join('');
+  const workers = `
+  <section id="workers"><div class="panel">${H('Worker Center', W.source || 'worker/')}
+    <div class="grid g4">
+      <div class="stat"><div class="k ${W.present ? 'ok' : 'warn'}">${W.present ? 'READY' : 'MISSING'}</div><div class="l">Worker Tree</div></div>
+      <div class="stat"><div class="k">${W.module_count || 0}</div><div class="l">Modules</div></div>
+      <div class="stat"><div class="k ${W.pwa ? 'ok' : 'warn'}">${W.pwa ? 'YES' : 'NO'}</div><div class="l">PWA Manifest</div></div>
+      <div class="stat"><div class="k">${esc(W.gmail || 'NOT_AUTHORIZED')}</div><div class="l">Gmail Inbox</div></div>
+    </div>
+    <div style="margin-top:12px">${wfChips}</div>
+    <p class="mono" style="margin-top:10px;font-size:11px;color:var(--dim)">
+      Worker Center lists files that exist in this repository. It does not invent live CRM or send activity.
+      Gmail OAuth (W3) is not in this repo — inbox is ${esc(W.gmail || 'NOT_AUTHORIZED')}.
+    </p>
+    <div class="grid g3" style="margin-top:14px">${workerCards}</div>
   </div></section>`;
 
   const agents = `

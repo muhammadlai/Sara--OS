@@ -55,5 +55,11 @@ export function createInboxAdapter(options = {}) {
     }
   }
 
-  return { listReplies, configured: Boolean(listInbox || baseUrl) };
+  function status() {
+    if (typeof listInbox === 'function') return 'TEST_ADAPTER';
+    if (baseUrl) return 'ADAPTER_URL';
+    return 'NOT_AUTHORIZED';
+  }
+
+  return { listReplies, status, configured: Boolean(listInbox || baseUrl) };
 }

@@ -100,6 +100,17 @@ IP_SOCKS_PORT=""            # SOCKS5 port (auto-assigned from 40001 if empty)
 # Leave empty to use PRIMARY_MODEL for compaction (default behavior)
 COMPACTION_PROVIDER=""      # e.g. "claude/claude-haiku-4-5" or "google/gemini-2.5-flash"
 
+# ─── Worker (W2–W6) — leave blank unless an authorized adapter exists ─
+# Never commit real tokens. Unset = honest idle (ADAPTER_UNAVAILABLE / NOT_AUTHORIZED).
+# GMAIL_ADAPTER_URL=""     # W4 inbox HTTP adapter (W3 Gmail OAuth is not in this repo)
+# EMAIL_ADAPTER_URL=""     # W5 send adapter
+# NOTIFY_WEBHOOK_URL=""
+# TEAMS_ACCESS_TOKEN=""
+# LINKEDIN_ACCESS_TOKEN=""
+# WORKER_TZ="UTC"
+# WORKER_HOUR=10
+# WORKER_MINUTE=0
+
 # ─── Voice Worker (Voicebox) ─────────────────────────────
 # Local Voicebox studio: https://github.com/jamiepine/voicebox.git
 # Do not commit tokens. Profile id is resolved at runtime from GET /profiles.

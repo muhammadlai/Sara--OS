@@ -15,6 +15,7 @@ import { createReplyWorker } from './replies.mjs';
 import { classifyReply } from './classifier.mjs';
 import { createOutreach, selectChannel } from './outreach.mjs';
 import { createDailyWorker } from './daily.mjs';
+import { listWorkflows, resolveWorkflow, attachWorkflow } from './workflows.mjs';
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -148,6 +149,22 @@ export async function main(argv = process.argv.slice(2)) {
     case 'worker-report':
       print(createDailyWorker({ home: opts.home }).report());
       break;
+    case 'workflows':
+      print({ workflows: listWorkflows() });
+      break;
+    case 'workflow': {
+      const id = opts.workflow || opts._[1];
+      const leadId = opts.lead;
+      if (leadId) {
+        const lead = engine.ledger.readLead(leadId);
+        if (!lead) { print({ status: 'FAILED', reason: 'lead_not_found' }); break; }
+        const next = engine.ledger.writeLead(attachWorkflow(lead, id));
+        print({ status: 'WORKFLOW_ATTACHED', lead: next, workflow: resolveWorkflow(next).id });
+      } else {
+        print(resolveWorkflow({}, id));
+      }
+      break;
+    }
     case 'worker': {
       const sub = opts._[1] || 'help';
       const daily = createDailyWorker({ home: opts.home });

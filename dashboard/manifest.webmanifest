@@ -1,0 +1,11 @@
+{
+  "name": "AITZAZ AI 2070",
+  "short_name": "AITZAZ",
+  "description": "Control dashboard for AITZAZ AI 2070. Renders only data generated from repository files.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#04060e",
+  "theme_color": "#22d3ee",
+  "lang": "en"
+}

@@ -199,6 +199,17 @@ node worker/cli.mjs outreach-status
 
 `OUTREACH_SENT` only after the provider returns a message id.
 
+## W1 vertical workflows
+`worker/workflows.mjs` — profiles `b2b_trade`, `roofing`, `aca_medicare`. They attach to a lead and constrain drafts. They do **not** send. Approval + provider confirmation stay in W5.
+
+```bash
+node worker/cli.mjs workflows
+node worker/cli.mjs workflow roofing --lead acme
+```
+
+## W3 Gmail
+There is one inbox module: `worker/gmail.mjs`. W3 Gmail OAuth is **not** in this repo. Send is W5 `createEmailAdapter` (`EMAIL_ADAPTER_URL` / `GMAIL_SEND_URL`). Do not add a second Gmail adapter. Unconfigured inbox = `NOT_AUTHORIZED` / `gmail_unavailable`.
+
 ## W6 Daily Autonomous Worker
 `worker/daily.mjs` + `worker/scheduler.mjs` orchestrate W1–W5. Persistent run IDs and locks live under `$OPENCLAW_HOME/worker/` (not git).
 

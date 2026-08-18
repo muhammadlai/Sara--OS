@@ -280,8 +280,33 @@ const operations = {
   source: 'worker/daily.mjs + $OPENCLAW_HOME/worker/runs (no live providers queried at build time)',
 };
 
+const workerModules = [
+  { id: 'W1 ledger/scoring', role: 'Lead ledger + ICP scoring', source: 'worker/ledger.mjs + worker/scoring.mjs', file: 'worker/ledger.mjs' },
+  { id: 'W1 workflows', role: 'Roofing / ACA-Medicare / B2B profiles (no send)', source: 'worker/workflows.mjs', file: 'worker/workflows.mjs' },
+  { id: 'W2 research', role: 'Jina discovery/research', source: 'worker/research.mjs + worker/discovery.mjs', file: 'worker/research.mjs' },
+  { id: 'W3 inbox', role: 'Authorized inbox adapter (no Gmail OAuth in repo)', source: 'worker/gmail.mjs', file: 'worker/gmail.mjs' },
+  { id: 'W4 replies', role: 'Classifier + opt-out + notify', source: 'worker/replies.mjs', file: 'worker/replies.mjs' },
+  { id: 'W5 outreach', role: 'Approval-gated multi-channel send', source: 'worker/outreach.mjs + worker/adapters.mjs', file: 'worker/outreach.mjs' },
+  { id: 'W6 daily', role: 'Scheduled orchestrator', source: 'worker/daily.mjs', file: 'worker/daily.mjs' },
+  { id: 'Voice Worker', role: 'Authorized Aitzaz voice via Voicebox REST', source: 'skills/voice-worker/voice-worker.mjs', file: 'skills/voice-worker/voice-worker.mjs' },
+].map((m) => ({
+  ...m,
+  present: existsSync(join(ROOT, m.file)),
+  status: existsSync(join(ROOT, m.file)) ? 'PRESENT' : 'MISSING',
+}));
+const workers = {
+  present: existsSync(join(ROOT, 'worker')),
+  module_count: workerModules.filter((m) => m.present).length,
+  modules: workerModules,
+  workflows: ['b2b_trade', 'roofing', 'aca_medicare'],
+  pwa: existsSync(join(ROOT, 'dashboard/manifest.webmanifest')),
+  gmail: process.env.GMAIL_ADAPTER_URL ? 'ADAPTER_URL' : 'NOT_AUTHORIZED',
+  source: 'worker/* file presence (no live providers queried)',
+};
+
 /* ---------------- future phases: honest non-existent features ---------------- */
 const future_phases = [
+  { area: 'W3', item: 'Gmail OAuth / gws send is not in this repository. Email send uses EMAIL_ADAPTER_URL / GMAIL_SEND_URL through W5. Unconfigured = ADAPTER_UNAVAILABLE / NOT_AUTHORIZED.' },
   { area: 'SDR / Work', item: 'Live CRM pipeline metrics (requires a connected Google Sheets / Notion CRM — configure deploy/config.sh)' },
   { area: 'Automation', item: 'Live heartbeat run history (heartbeat executes on the deployed OpenClaw gateway, not in this repository)' },
   { area: 'GitHub', item: 'ClawHub marketplace publication of the aitzaz-ai-2070 skill' },
@@ -318,6 +343,7 @@ const data = {
   replies,
   outreach,
   operations,
+  workers,
   future_phases,
 };
 

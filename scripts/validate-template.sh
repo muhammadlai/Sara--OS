@@ -36,6 +36,8 @@ for file in \
   worker/replies.mjs worker/classifier.mjs worker/gmail.mjs worker/notify.mjs worker/test-replies.mjs \
   worker/adapters.mjs worker/outreach.mjs worker/test-outreach.mjs \
   worker/daily.mjs worker/scheduler.mjs worker/report.mjs worker/test-daily.mjs \
+  worker/workflows.mjs worker/test-workflows.mjs \
+  dashboard/manifest.webmanifest \
   product-kb/catalog.json product-kb/scripts/generate-pi.js
 do
   require_file "$file"
@@ -92,6 +94,9 @@ pass "W5 multi-channel outreach tests passed"
 
 node --test "$ROOT/worker/test-daily.mjs"
 pass "W6 daily autonomous worker tests passed"
+
+node --test "$ROOT/worker/test-workflows.mjs"
+pass "W1 workflow + anti-fake tests passed"
 
 node --input-type=module -e "
 import { readFileSync } from 'fs';

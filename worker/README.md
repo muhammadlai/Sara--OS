@@ -38,6 +38,15 @@ node worker/cli.mjs send --lead acme --fingerprint <fp>
 
 Unconfigured Email = `ADAPTER_UNAVAILABLE`. Teams without `TEAMS_ACCESS_TOKEN` = `NOT_AUTHORIZED`. LinkedIn without an official API = `MANUAL_ASSIST_REQUIRED` (never `OUTREACH_SENT`).
 
+## W1 workflows
+
+```bash
+node worker/cli.mjs workflows
+node worker/cli.mjs workflow aca_medicare --lead acme
+```
+
+Profiles constrain drafts (roofing / ACA-Medicare). They never mark mail sent.
+
 ## W6 Daily Autonomous Worker
 
 Orchestrates existing W1–W5 modules. Does not duplicate their logic.

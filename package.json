@@ -12,7 +12,7 @@
     "validate": "bash scripts/validate-template.sh",
     "test": "npm run validate",
     "test:voice": "node --test skills/voice-worker/test/voice-worker.test.mjs",
-    "test:worker": "node --test worker/test-research.mjs worker/test-replies.mjs worker/test-outreach.mjs worker/test-daily.mjs",
+    "test:worker": "node --test worker/test-research.mjs worker/test-replies.mjs worker/test-outreach.mjs worker/test-daily.mjs worker/test-workflows.mjs",
     "worker:run": "node worker/cli.mjs run",
     "worker:status": "node worker/cli.mjs status",
     "worker:report": "node worker/cli.mjs report",

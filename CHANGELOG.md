@@ -6,6 +6,17 @@ Changes sourced from upstream (openclaw/openclaw) are labeled with the originati
 
 ---
 
+## 2026-08-18 — Canonical consolidation (workflows, Worker Center, PWA)
+
+### Added
+- W1 vertical profiles (`b2b_trade`, `roofing`, `aca_medicare`) in `worker/workflows.mjs`. They do not send and do not invent eligibility/insurance claims.
+- Worker Center on the existing dashboard (module file presence only).
+- Dashboard PWA manifest (`dashboard/manifest.webmanifest`) — installable shell, no service worker, no offline fake data.
+- Deploy example comments for worker adapter env vars (values stay empty).
+
+### Not added
+- No second Gmail adapter. W3 OAuth is still absent. Voice Worker / W2 / W4 / W5 were not replaced.
+
 ## 2026-08-18 — W6 daily autonomous worker
 
 ### Added
